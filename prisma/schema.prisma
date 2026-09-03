@@ -1,0 +1,905 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  SERVICE_ADVISOR
+  TECHNICIAN
+  CASHIER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  LPG
+  ELECTRIC
+  HYBRID
+  OTHER
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+  AMT
+  CVT
+  DCT
+  OTHER
+}
+
+enum JobCardStatus {
+  DRAFT
+  RECEIVED
+  INSPECTION
+  ESTIMATE_PENDING
+  CUSTOMER_APPROVAL
+  APPROVED
+  IN_PROGRESS
+  WAITING_FOR_PARTS
+  QUALITY_CHECK
+  READY_FOR_DELIVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceType {
+  GENERAL_SERVICE
+  PERIODIC_SERVICE
+  OIL_CHANGE
+  BRAKE_SERVICE
+  AC_SERVICE
+  ENGINE_REPAIR
+  ELECTRICAL
+  SUSPENSION
+  TYRE_SERVICE
+  BATTERY
+  BODY_WORK
+  DIAGNOSTIC
+  OTHER
+}
+
+enum InspectionStatus {
+  GOOD
+  ATTENTION
+  URGENT
+  NOT_CHECKED
+  NOT_APPLICABLE
+}
+
+enum EstimateStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum ItemType {
+  PART
+  LABOUR
+  OTHER
+}
+
+enum StockMovementType {
+  PURCHASE
+  JOB_USAGE
+  RETURN
+  ADJUSTMENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum ReminderType {
+  DATE_BASED
+  ODOMETER_BASED
+}
+
+enum ReminderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  LOW_STOCK
+  ESTIMATE_PENDING
+  VEHICLE_READY
+  PAYMENT_DUE
+  SERVICE_REMINDER
+  GENERAL
+}
+
+// ============================================================
+// WORKSHOP / TENANT
+// ============================================================
+
+model Workshop {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  phone   String?
+  email   String?
+  address String?
+  gstin   String?
+
+  logoUrl String?
+
+  currency String @default("INR")
+  timezone String @default("Asia/Kolkata")
+
+  invoicePrefix String @default("INV")
+  jobCardPrefix String @default("JC")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  branches       Branch[]
+  customers      Customer[]
+  vehicles       Vehicle[]
+  jobCards       JobCard[]
+  inspections    Inspection[]
+  estimates      Estimate[]
+  inventoryItems InventoryItem[]
+  categories     InventoryCategory[]
+  suppliers      Supplier[]
+  invoices       Invoice[]
+  payments       Payment[]
+  reminders      ServiceReminder[]
+  notifications  Notification[]
+
+  @@index([name])
+}
+
+// ============================================================
+// BRANCH
+// ============================================================
+// Included now so Stage 2 multi-branch expansion doesn't require
+// redesigning the tenant structure.
+
+model Branch {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  name     String
+  code     String
+  phone    String?
+  email    String?
+  address  String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop       Workshop        @relation(fields: [workshopId], references: [id])
+  users          User[]
+  jobCards       JobCard[]
+  inventoryItems InventoryItem[]
+  suppliers      Supplier[]
+  invoices       Invoice[]
+  payments       Payment[]
+
+  @@unique([workshopId, code])
+  @@index([workshopId])
+}
+
+// ============================================================
+// USERS / AUTH
+// ============================================================
+
+model User {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String  @db.ObjectId
+  branchId   String? @db.ObjectId
+
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  password  String
+
+  role   UserRole   @default(SERVICE_ADVISOR)
+  status UserStatus @default(ACTIVE)
+
+  lastLoginAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop? @relation(fields: [workshopId], references: [id])
+  branch   Branch?   @relation(fields: [branchId], references: [id])
+
+  createdJobCards    JobCard[] @relation("JobCardCreatedBy")
+  advisorJobCards    JobCard[] @relation("JobCardAdvisor")
+  technicianJobCards JobCard[] @relation("JobCardTechnician")
+
+  statusChanges        JobCardStatusHistory[]
+  inspectionsCompleted Inspection[]
+
+  @@index([workshopId])
+  @@index([branchId])
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+// ============================================================
+// CUSTOMER
+// ============================================================
+
+model Customer {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  name           String
+  phone          String
+  email          String?
+  alternatePhone String?
+  address        String?
+  notes          String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  vehicles  Vehicle[]
+  jobCards  JobCard[]
+  estimates Estimate[]
+  invoices  Invoice[]
+  payments  Payment[]
+  reminders ServiceReminder[]
+
+  @@unique([workshopId, phone])
+  @@index([workshopId])
+  @@index([phone])
+  @@index([name])
+}
+
+// ============================================================
+// VEHICLE
+// ============================================================
+
+model Vehicle {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+  customerId String @db.ObjectId
+
+  registrationNumber String
+  make               String
+  model              String
+  variant            String?
+  year               Int?
+
+  fuelType     FuelType?
+  transmission TransmissionType?
+
+  vin           String?
+  chassisNumber String?
+  engineNumber  String?
+  color         String?
+
+  currentOdometer Int @default(0)
+
+  insuranceExpiry DateTime?
+  pucExpiry       DateTime?
+  warrantyExpiry  DateTime?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  jobCards  JobCard[]
+  reminders ServiceReminder[]
+
+  @@unique([workshopId, registrationNumber])
+  @@index([workshopId])
+  @@index([customerId])
+  @@index([registrationNumber])
+  @@index([vin])
+  @@map("vehicles")
+}
+
+// ============================================================
+// JOB CARD
+// ============================================================
+
+model JobCard {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+  branchId   String @db.ObjectId
+
+  customerId String @db.ObjectId
+  vehicleId  String @db.ObjectId
+
+  advisorId    String? @db.ObjectId
+  technicianId String? @db.ObjectId
+  createdById  String  @db.ObjectId
+
+  jobNumber String
+
+  status      JobCardStatus @default(DRAFT)
+  serviceType ServiceType?
+
+  odometerIn  Int?
+  odometerOut Int?
+
+  fuelLevel Int?
+
+  customerComplaint String
+  internalNotes     String?
+
+  promisedDate DateTime?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  branch   Branch   @relation(fields: [branchId], references: [id])
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  advisor    User? @relation("JobCardAdvisor", fields: [advisorId], references: [id])
+  technician User? @relation("JobCardTechnician", fields: [technicianId], references: [id])
+  createdBy  User  @relation("JobCardCreatedBy", fields: [createdById], references: [id])
+
+  statusHistory JobCardStatusHistory[]
+  inspection    Inspection?
+  estimate      Estimate?
+
+  labourItems LabourItem[]
+  partsUsed   JobPart[]
+  invoice     Invoice?
+
+  @@unique([workshopId, jobNumber])
+  @@index([workshopId])
+  @@index([branchId])
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([technicianId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================================
+// JOB CARD STATUS HISTORY
+// ============================================================
+
+model JobCardStatusHistory {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  jobCardId String @db.ObjectId
+  userId    String @db.ObjectId
+
+  fromStatus JobCardStatus?
+  toStatus   JobCardStatus
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([jobCardId])
+  @@index([userId])
+}
+
+// ============================================================
+// INSPECTION
+// ============================================================
+
+model Inspection {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+  jobCardId  String @db.ObjectId
+
+  completedById String? @db.ObjectId
+
+  notes       String?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop    Workshop @relation(fields: [workshopId], references: [id])
+  jobCard     JobCard  @relation(fields: [jobCardId], references: [id])
+  completedBy User?    @relation(fields: [completedById], references: [id])
+
+  items InspectionItem[]
+
+  @@unique([jobCardId])
+  @@index([workshopId])
+}
+
+// ============================================================
+// INSPECTION ITEMS
+// ============================================================
+
+model InspectionItem {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  inspectionId String @db.ObjectId
+
+  category String
+  itemName String
+
+  status InspectionStatus @default(NOT_CHECKED)
+
+  note           String?
+  recommendation String?
+
+  photoUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id])
+
+  @@index([inspectionId])
+}
+
+// ============================================================
+// ESTIMATE
+// ============================================================
+
+model Estimate {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  jobCardId  String @db.ObjectId
+  customerId String @db.ObjectId
+
+  estimateNumber String
+
+  status EstimateStatus @default(DRAFT)
+
+  subtotal   Float @default(0)
+  discount   Float @default(0)
+  taxAmount  Float @default(0)
+  grandTotal Float @default(0)
+
+  notes String?
+
+  sentAt     DateTime?
+  approvedAt DateTime?
+  rejectedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  jobCard  JobCard  @relation(fields: [jobCardId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  items EstimateItem[]
+
+  @@unique([workshopId, estimateNumber])
+  @@unique([jobCardId])
+  @@index([workshopId])
+  @@index([customerId])
+  @@index([status])
+}
+
+// ============================================================
+// ESTIMATE ITEMS
+// ============================================================
+
+model EstimateItem {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  estimateId String @db.ObjectId
+
+  type ItemType
+
+  description String
+
+  inventoryItemId String? @db.ObjectId
+
+  quantity  Float @default(1)
+  unitPrice Float @default(0)
+  amount    Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  estimate Estimate @relation(fields: [estimateId], references: [id])
+  // inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([estimateId])
+  @@index([inventoryItemId])
+}
+
+// ============================================================
+// LABOUR ITEMS
+// ============================================================
+
+model LabourItem {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  jobCardId String @db.ObjectId
+
+  technicianId String? @db.ObjectId
+
+  description String
+
+  hours  Float @default(1)
+  rate   Float @default(0)
+  amount Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id])
+
+  @@index([jobCardId])
+  @@index([technicianId])
+}
+
+// ============================================================
+// INVENTORY CATEGORY
+// ============================================================
+
+model InventoryCategory {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  name     String
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  items InventoryItem[]
+
+  @@unique([workshopId, name])
+  @@index([workshopId])
+}
+
+// ============================================================
+// INVENTORY ITEM
+// ============================================================
+
+model InventoryItem {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String  @db.ObjectId
+  branchId   String? @db.ObjectId
+  categoryId String? @db.ObjectId
+
+  name String
+  sku  String
+
+  brand String?
+  unit  String  @default("PCS")
+
+  costPrice    Float @default(0)
+  sellingPrice Float @default(0)
+
+  currentStock Float @default(0)
+  minimumStock Float @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop           @relation(fields: [workshopId], references: [id])
+  branch   Branch?            @relation(fields: [branchId], references: [id])
+  category InventoryCategory? @relation(fields: [categoryId], references: [id])
+
+  stockMovements StockMovement[]
+  jobParts       JobPart[]
+  invoiceItems   InvoiceItem[]
+  // estimateItems EstimateItem[]
+
+  @@unique([workshopId, sku])
+  @@index([workshopId])
+  @@index([branchId])
+  @@index([categoryId])
+  @@index([name])
+  @@index([sku])
+}
+
+// ============================================================
+// JOB PARTS / PARTS USED
+// ============================================================
+
+model JobPart {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  jobCardId       String @db.ObjectId
+  inventoryItemId String @db.ObjectId
+
+  quantity Float @default(1)
+
+  unitCost  Float @default(0)
+  unitPrice Float @default(0)
+  amount    Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  jobCard       JobCard       @relation(fields: [jobCardId], references: [id])
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([jobCardId])
+  @@index([inventoryItemId])
+}
+
+// ============================================================
+// STOCK MOVEMENT
+// ============================================================
+
+model StockMovement {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  inventoryItemId String @db.ObjectId
+
+  type StockMovementType
+
+  quantity Float
+
+  unitCost      Float?
+  referenceType String?
+  referenceId   String?
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([inventoryItemId])
+  @@index([type])
+  @@index([referenceId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// SUPPLIER
+// ============================================================
+
+model Supplier {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String  @db.ObjectId
+  branchId   String? @db.ObjectId
+
+  name    String
+  phone   String?
+  email   String?
+  address String?
+  gstin   String?
+  notes   String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  branch   Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([workshopId])
+  @@index([name])
+  @@index([phone])
+}
+
+// ============================================================
+// INVOICE
+// ============================================================
+
+model Invoice {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+  branchId   String @db.ObjectId
+
+  jobCardId  String @db.ObjectId
+  customerId String @db.ObjectId
+
+  invoiceNumber String
+
+  status InvoiceStatus @default(DRAFT)
+
+  subtotal   Float @default(0)
+  discount   Float @default(0)
+  taxAmount  Float @default(0)
+  grandTotal Float @default(0)
+  amountPaid Float @default(0)
+  balanceDue Float @default(0)
+
+  notes String?
+
+  issuedAt DateTime?
+  paidAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  branch   Branch   @relation(fields: [branchId], references: [id])
+
+  jobCard  JobCard  @relation(fields: [jobCardId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@unique([workshopId, invoiceNumber])
+  @@unique([jobCardId])
+  @@index([workshopId])
+  @@index([branchId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================================
+// INVOICE ITEMS
+// ============================================================
+
+model InvoiceItem {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId String @db.ObjectId
+
+  type ItemType
+
+  description String
+
+  inventoryItemId String? @db.ObjectId
+
+  quantity  Float @default(1)
+  unitPrice Float @default(0)
+  amount    Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  invoice       Invoice        @relation(fields: [invoiceId], references: [id])
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([invoiceId])
+  @@index([inventoryItemId])
+}
+
+// ============================================================
+// PAYMENT
+// ============================================================
+
+model Payment {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+  branchId   String @db.ObjectId
+
+  invoiceId  String @db.ObjectId
+  customerId String @db.ObjectId
+
+  amount Float
+  method PaymentMethod
+  status PaymentStatus @default(SUCCESS)
+
+  referenceNumber String?
+  notes           String?
+
+  paidAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  branch   Branch   @relation(fields: [branchId], references: [id])
+
+  invoice  Invoice  @relation(fields: [invoiceId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([workshopId])
+  @@index([branchId])
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([paidAt])
+}
+
+// ============================================================
+// SERVICE REMINDER
+// ============================================================
+
+model ServiceReminder {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  customerId String @db.ObjectId
+  vehicleId  String @db.ObjectId
+
+  type   ReminderType
+  status ReminderStatus @default(PENDING)
+
+  dueDate     DateTime?
+  dueOdometer Int?
+
+  title String
+  notes String?
+
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  @@index([workshopId])
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId String @db.ObjectId
+
+  type NotificationType
+
+  title   String
+  message String
+
+  entityType String?
+  entityId   String?
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  @@index([workshopId])
+  @@index([isRead])
+  @@index([createdAt])
+}
