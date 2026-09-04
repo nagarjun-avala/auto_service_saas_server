@@ -198,6 +198,12 @@ enum JobCardItemType {
   OTHER
 }
 
+enum InvoiceItemType {
+  LABOUR
+  PART
+  OTHER
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -311,6 +317,7 @@ model User {
   refreshTokens        RefreshToken[]
   stockTransactions    StockTransaction[]
   purchases            Purchase[]
+  payments             Payment[]
 
   @@index([workshopId])
   @@index([branchId])
@@ -726,6 +733,7 @@ model Part {
   stockTransactions StockTransaction[]
   purchaseItems     PurchaseItem[]
   jobCardItems      JobCardItem[]
+  invoiceItems      InvoiceItem[]
 
   @@unique([workshopId, partNumber])
   @@index([workshopId])
@@ -1028,40 +1036,33 @@ model JobCardItem {
 // ============================================================
 
 model Invoice {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  workshopId String @db.ObjectId
-  branchId   String @db.ObjectId
-
-  jobCardId  String @db.ObjectId
-  customerId String @db.ObjectId
-
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId    String        @db.ObjectId
+  jobCardId     String        @db.ObjectId
   invoiceNumber String
+  status        InvoiceStatus @default(DRAFT)
 
-  status InvoiceStatus @default(DRAFT)
+  subtotal   Int @default(0)
+  discount   Int @default(0)
+  taxAmount  Int @default(0)
+  grandTotal Int @default(0)
 
-  subtotal   Float @default(0)
-  discount   Float @default(0)
-  taxAmount  Float @default(0)
-  grandTotal Float @default(0)
-  amountPaid Float @default(0)
-  balanceDue Float @default(0)
+  issuedAt    DateTime?
+  cancelledAt DateTime?
 
   notes String?
-
-  issuedAt DateTime?
-  paidAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workshop Workshop @relation(fields: [workshopId], references: [id])
-  branch   Branch   @relation(fields: [branchId], references: [id])
-
-  jobCard  JobCard  @relation(fields: [jobCardId], references: [id])
-  customer Customer @relation(fields: [customerId], references: [id])
-
-  items    InvoiceItem[]
-  payments Payment[]
+  workshop   Workshop      @relation(fields: [workshopId], references: [id])
+  jobCard    JobCard       @relation(fields: [jobCardId], references: [id])
+  items      InvoiceItem[]
+  payments   Payment[]
+  branch     Branch?       @relation(fields: [branchId], references: [id])
+  branchId   String?       @db.ObjectId
+  customer   Customer?     @relation(fields: [customerId], references: [id])
+  customerId String?       @db.ObjectId
 
   @@unique([workshopId, invoiceNumber])
   @@unique([jobCardId])
@@ -1080,23 +1081,28 @@ model InvoiceItem {
   id        String @id @default(auto()) @map("_id") @db.ObjectId
   invoiceId String @db.ObjectId
 
-  type ItemType
+  type   InvoiceItemType
+  partId String?         @db.ObjectId
 
   description String
-
-  inventoryItemId String? @db.ObjectId
-
-  quantity  Float @default(1)
-  unitPrice Float @default(0)
-  amount    Float @default(0)
+  quantity    Int    @default(1)
+  unitPrice   Int    @default(0)
+  discount    Int    @default(0)
+  taxRate     Int    @default(0)
+  taxAmount   Int    @default(0)
+  total       Int    @default(0)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  invoice       Invoice        @relation(fields: [invoiceId], references: [id])
-  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  invoice         Invoice        @relation(fields: [invoiceId], references: [id])
+  part            Part?          @relation(fields: [partId], references: [id])
+  inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  inventoryItemId String?        @db.ObjectId
 
   @@index([invoiceId])
-  @@index([inventoryItemId])
+  @@index([partId])
+  @@index([type])
 }
 
 // ============================================================
@@ -1106,32 +1112,30 @@ model InvoiceItem {
 model Payment {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   workshopId String @db.ObjectId
-  branchId   String @db.ObjectId
-
   invoiceId  String @db.ObjectId
-  customerId String @db.ObjectId
 
-  amount Float
+  amount Int
   method PaymentMethod
-  status PaymentStatus @default(SUCCESS)
 
   referenceNumber String?
   notes           String?
 
-  paidAt    DateTime @default(now())
+  receivedById String @db.ObjectId
+
   createdAt DateTime @default(now())
 
-  workshop Workshop @relation(fields: [workshopId], references: [id])
-  branch   Branch   @relation(fields: [branchId], references: [id])
-
-  invoice  Invoice  @relation(fields: [invoiceId], references: [id])
-  customer Customer @relation(fields: [customerId], references: [id])
+  workshop   Workshop  @relation(fields: [workshopId], references: [id])
+  invoice    Invoice   @relation(fields: [invoiceId], references: [id])
+  receivedBy User      @relation(fields: [receivedById], references: [id])
+  branch     Branch?   @relation(fields: [branchId], references: [id])
+  branchId   String?   @db.ObjectId
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  customerId String?   @db.ObjectId
 
   @@index([workshopId])
-  @@index([branchId])
   @@index([invoiceId])
-  @@index([customerId])
-  @@index([paidAt])
+  @@index([method])
+  @@index([createdAt])
 }
 
 // ============================================================
