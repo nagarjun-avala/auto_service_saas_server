@@ -16,6 +16,7 @@ import jobCardItemRoutes from "../modules/job-card-item/job-card-item.routes.js"
 import invoiceRoutes from "../modules/invoice/invoice.routes.js";
 import paymentRoutes from "../modules/payment/payment.routes.js";
 import reminderRoutes from "../modules/reminder/reminder.routes.js";
+import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
 
 const router = Router();
 
@@ -35,5 +36,6 @@ router.use("/", jobCardItemRoutes); // balence url is attached in job-card-item.
 router.use("/invoices", invoiceRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/reminders", reminderRoutes);
+router.use("/dashboard", dashboardRoutes);
 
 export { router };
