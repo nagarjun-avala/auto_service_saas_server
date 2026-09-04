@@ -192,6 +192,12 @@ enum PurchaseStatus {
   CANCELLED
 }
 
+enum JobCardItemType {
+  LABOUR
+  PART
+  OTHER
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -476,7 +482,8 @@ model JobCard {
   labourItems LabourItem[]
   partsUsed   JobPart[]
 
-  invoice Invoice?
+  invoice      Invoice?
+  jobCardItems JobCardItem[]
 
   @@unique([workshopId, jobNumber])
   @@index([workshopId])
@@ -718,6 +725,7 @@ model Part {
 
   stockTransactions StockTransaction[]
   purchaseItems     PurchaseItem[]
+  jobCardItems      JobCardItem[]
 
   @@unique([workshopId, partNumber])
   @@index([workshopId])
@@ -985,6 +993,34 @@ model PurchaseItem {
 
   @@index([purchaseId])
   @@index([partId])
+}
+
+model JobCardItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  jobCardId String  @db.ObjectId
+  partId    String? @db.ObjectId
+
+  type        JobCardItemType
+  description String
+
+  quantity         Int @default(1)
+  consumedQuantity Int @default(0)
+
+  unitPrice Int @default(0)
+  discount  Int @default(0)
+  taxRate   Int @default(0)
+  taxAmount Int @default(0)
+  total     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id])
+  part    Part?   @relation(fields: [partId], references: [id])
+
+  @@index([jobCardId])
+  @@index([partId])
+  @@index([type])
 }
 
 // ============================================================
