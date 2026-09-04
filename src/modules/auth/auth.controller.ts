@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { loginSchema, refreshTokenSchema, logoutSchema } from "./auth.validation.js";
 import { authService } from "./auth.service.js";
+import { AppError } from "../../utils/app-error.js";
 
 export async function login(
     req: Request,
@@ -37,11 +38,27 @@ export async function logout(req: Request, res: Response) {
     });
 }
 
-export async function me(req: Request, res: Response) {
-    const userId = req.user!.id;
-    const result = await authService.me({ userId });
-    res.status(200).json({
+export async function me(
+    req: Request,
+    res: Response
+) {
+    if (!req.user) {
+        throw new AppError(
+            "Authentication required",
+            401,
+            "AUTH_REQUIRED"
+        );
+    }
+
+    const user =
+        await authService.getCurrentUser(
+            req.user.id
+        );
+
+    return res.status(200).json({
         success: true,
-        data: result,
+        data: {
+            user,
+        },
     });
 }

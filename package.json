@@ -2,11 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.ts",
+  "main": "server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "rm -rf dist && npx prisma generate && mkdir -p dist/generated && cp -r src/generated/prisma dist/generated/prisma && tsc",
+    "start": "node dist/src/server.js",
     "seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.12.0",
     "bcrypt": "^6.0.0",

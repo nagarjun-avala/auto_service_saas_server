@@ -1,6 +1,6 @@
-import db from "../../config/db";
-import { logger } from "../../config/logger";
-import { AppError } from "../../utils/app-error";
+import db from "../../config/db.js";
+import { logger } from "../../config/logger.js";
+import { AppError } from "../../utils/app-error.js";
 import {
     verifyPassword,
     generateAccessToken,
@@ -145,30 +145,43 @@ export const authService = {
             },
         };
     },
-    async me(params: { userId: string }) {
-        const { userId } = params;
-        const user = await db.user.findFirst({
+    async getCurrentUser(userId: string) {
+        const user = await db.user.findUnique({
             where: {
                 id: userId,
             },
-        });
-        if (!user) {
-            throw new Error("User not found");
-        }
-        return {
-            success: true,
-            user: {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                phone: user.phone,
-                role: user.role,
-                status: user.status,
-                workshopId: user.workshopId,
-                branchId: user.branchId,
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true,
+                status: true,
+                workshopId: true,
+                branchId: true,
+                lastLoginAt: true,
+                createdAt: true,
             },
-        };
+        });
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404,
+                "USER_NOT_FOUND"
+            );
+        }
+
+        if (user.status !== "ACTIVE") {
+            throw new AppError(
+                "Account is inactive",
+                403,
+                "ACCOUNT_INACTIVE"
+            );
+        }
+
+        return user;
     },
     async logout(params: { userId: string, refreshToken: string }) {
         const { userId, refreshToken } = params;

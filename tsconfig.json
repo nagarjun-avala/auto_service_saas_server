@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "target": "ES2023",
+    "module": "commonjs",
+    // "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -26,14 +30,17 @@
     // Recommended Options
     "strict": true,
     "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "tests/**/*",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

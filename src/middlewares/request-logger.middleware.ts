@@ -1,12 +1,13 @@
-import pinoHttp from "pino-http";
+import { pinoHttp } from "pino-http";
 import crypto from "node:crypto";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { logger } from "../config/logger.js";
 
 export const requestLogger = pinoHttp({
     logger,
 
-    genReqId(req) {
+    genReqId(req: IncomingMessage) {
         const requestId = req.headers["x-request-id"];
 
         if (typeof requestId === "string") {
@@ -17,34 +18,33 @@ export const requestLogger = pinoHttp({
     },
 
     serializers: {
-        req(req) {
+        req(req: IncomingMessage & { id?: unknown; originalUrl?: string; ip?: string }) {
             return {
                 id: req.id,
                 method: req.method,
-                url: req.originalUrl,
+                url: req.originalUrl || req.url,
                 remoteAddress: req.ip,
             };
         },
 
-        res(res) {
+        res(res: ServerResponse) {
             return {
                 statusCode: res.statusCode,
             };
         },
     },
 
-    customSuccessMessage(req, res) {
+    customSuccessMessage(req: IncomingMessage, res: ServerResponse) {
         const url = (req as { originalUrl?: string }).originalUrl || req.url;
         return `${req.method} ${url} - ${res.statusCode}`;
     },
 
-    customErrorMessage(req, res, error) {
+    customErrorMessage(req: IncomingMessage, res: ServerResponse, error: Error) {
         const url = (req as { originalUrl?: string }).originalUrl || req.url;
         return `${req.method} ${url} - ${res.statusCode} - ${error.message}`;
     },
 
-
-    customLogLevel(_req, res, error) {
+    customLogLevel(_req: IncomingMessage, res: ServerResponse, error?: Error) {
         if (error) {
             return "error";
         }
