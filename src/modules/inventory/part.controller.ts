@@ -93,7 +93,7 @@ export async function getPartController(
 ) {
     const context = getAuthContext(req);
 
-    const partId = req.params.id;
+    const partId = req.params.id as string;
 
     if (!partId) {
         throw new AppError(
@@ -123,7 +123,7 @@ export async function updatePartController(
 ) {
     const context = getAuthContext(req);
 
-    const partId = req.params.id;
+    const partId = req.params.id as string;
 
     if (!partId) {
         throw new AppError(
@@ -158,7 +158,7 @@ export async function archivePartController(
 ) {
     const context = getAuthContext(req);
 
-    const partId = req.params.id;
+    const partId = req.params.id as string;
 
     if (!partId) {
         throw new AppError(

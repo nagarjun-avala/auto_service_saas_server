@@ -15,12 +15,12 @@ export interface CreatePartInput {
     partNumber: string;
     name: string;
 
-    description?: string | null;
+    description?: string | null | undefined;
 
     type: PartType;
 
-    brand?: string | null;
-    category?: string | null;
+    brand?: string | null | undefined;
+    category?: string | null | undefined;
 
     unit: string;
 
@@ -30,7 +30,7 @@ export interface CreatePartInput {
     taxRate: number;
 
     minStock: number;
-    maxStock?: number | null;
+    maxStock?: number | null | undefined;
 }
 
 /**
@@ -41,25 +41,25 @@ export interface CreatePartInput {
  * Stock must only change through stock transactions.
  */
 export interface UpdatePartInput {
-    partNumber?: string;
-    name?: string;
+    partNumber?: string | undefined;
+    name?: string | undefined;
 
-    description?: string | null;
+    description?: string | null | undefined;
 
-    type?: PartType;
+    type?: PartType | undefined;
 
-    brand?: string | null;
-    category?: string | null;
+    brand?: string | null | undefined;
+    category?: string | null | undefined;
 
-    unit?: string;
+    unit?: string | undefined;
 
-    purchasePrice?: number;
-    sellingPrice?: number;
+    purchasePrice?: number | undefined;
+    sellingPrice?: number | undefined;
 
-    taxRate?: number;
+    taxRate?: number | undefined;
 
-    minStock?: number;
-    maxStock?: number | null;
+    minStock?: number | undefined;
+    maxStock?: number | null | undefined;
 }
 
 /**
@@ -69,14 +69,14 @@ export interface ListPartsOptions {
     page: number;
     limit: number;
 
-    search?: string;
+    search?: string | undefined;
 
-    category?: string;
-    brand?: string;
+    category?: string | undefined;
+    brand?: string | undefined;
 
-    type?: PartType;
+    type?: PartType | undefined;
 
-    lowStock?: boolean;
+    lowStock?: boolean | undefined;
 
     sortBy:
     | "name"
