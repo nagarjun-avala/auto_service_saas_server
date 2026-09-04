@@ -19,6 +19,7 @@ export async function verifyPassword(password: string, hash: string) {
 export type AccessTokenPayload = {
     sub: string;
     workshopId: string;
+    branchId: string | null;
     role: UserRole;
 };
 

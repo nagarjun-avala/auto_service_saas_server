@@ -107,6 +107,7 @@ export const authService = {
             generateAccessToken({
                 sub: user.id,
                 workshopId: user.workshopId,
+                branchId: user.branchId,
                 role: user.role,
             });
 
@@ -395,6 +396,7 @@ export const authService = {
             generateAccessToken({
                 sub: user.id,
                 workshopId: user.workshopId,
+                branchId: user.branchId,
                 role: user.role,
             });
 

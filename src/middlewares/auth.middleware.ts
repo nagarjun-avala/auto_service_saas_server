@@ -51,6 +51,7 @@ export function authenticate(
         req.user = {
             id: payload.sub,
             workshopId: payload.workshopId,
+            branchId: payload.branchId,
             role: payload.role,
         };
 
