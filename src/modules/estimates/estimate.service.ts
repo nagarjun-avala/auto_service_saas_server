@@ -675,6 +675,26 @@ export async function updateEstimateStatus(
         );
     }
 
+    /**
+     * Prevent changes to estimates whose Job Card
+     * has already been completed or cancelled.
+     */
+    if (
+        estimate.jobCard.status ===
+        JobCardStatus.COMPLETED ||
+        estimate.jobCard.status ===
+        JobCardStatus.CANCELLED
+    ) {
+        throw new AppError(
+            "Cannot update an estimate for a completed or cancelled job card",
+            400,
+            "INVALID_JOB_CARD_STATUS"
+        );
+    }
+
+    /**
+     * Validate Estimate status transition.
+     */
     const allowedStatuses =
         ESTIMATE_STATUS_TRANSITIONS[
         estimate.status
@@ -688,9 +708,38 @@ export async function updateEstimateStatus(
         );
     }
 
+    /**
+     * Additional workflow validation.
+     */
+    if (
+        newStatus ===
+        EstimateStatus.SENT &&
+        estimate.jobCard.status !==
+        JobCardStatus.ESTIMATE_PENDING
+    ) {
+        throw new AppError(
+            "Estimate can only be sent when the job card is awaiting an estimate",
+            400,
+            "INVALID_JOB_CARD_STATUS"
+        );
+    }
+
+    if (
+        newStatus ===
+        EstimateStatus.APPROVED &&
+        estimate.jobCard.status !==
+        JobCardStatus.CUSTOMER_APPROVAL
+    ) {
+        throw new AppError(
+            "Estimate can only be approved when the job card is awaiting customer approval",
+            400,
+            "INVALID_JOB_CARD_STATUS"
+        );
+    }
+
     const now = new Date();
 
-    const data: {
+    const estimateData: {
         status: EstimateStatus;
         sentAt?: Date;
         approvedAt?: Date;
@@ -703,21 +752,21 @@ export async function updateEstimateStatus(
         newStatus ===
         EstimateStatus.SENT
     ) {
-        data.sentAt = now;
+        estimateData.sentAt = now;
     }
 
     if (
         newStatus ===
         EstimateStatus.APPROVED
     ) {
-        data.approvedAt = now;
+        estimateData.approvedAt = now;
     }
 
     if (
         newStatus ===
         EstimateStatus.REJECTED
     ) {
-        data.rejectedAt = now;
+        estimateData.rejectedAt = now;
     }
 
     const result =
@@ -729,104 +778,95 @@ export async function updateEstimateStatus(
                             id: estimate.id,
                         },
 
-                        data,
+                        data: estimateData,
                     });
 
                 /**
-                 * Estimate SENT
+                 * SENT
                  *
-                 * Customer now needs to approve it.
+                 * ESTIMATE_PENDING → CUSTOMER_APPROVAL
                  */
                 if (
                     newStatus ===
                     EstimateStatus.SENT
                 ) {
-                    if (
-                        estimate.jobCard.status ===
-                        JobCardStatus.ESTIMATE_PENDING
-                    ) {
-                        await tx.jobCard.update({
-                            where: {
-                                id: estimate.jobCard.id,
-                            },
+                    await tx.jobCard.update({
+                        where: {
+                            id: estimate.jobCard.id,
+                        },
 
-                            data: {
-                                status:
-                                    JobCardStatus.CUSTOMER_APPROVAL,
-                            },
-                        });
+                        data: {
+                            status:
+                                JobCardStatus.CUSTOMER_APPROVAL,
+                        },
+                    });
 
-                        await tx.jobCardStatusHistory.create({
-                            data: {
-                                jobCardId:
-                                    estimate.jobCard.id,
+                    await tx.jobCardStatusHistory.create({
+                        data: {
+                            jobCardId:
+                                estimate.jobCard.id,
 
-                                fromStatus:
-                                    JobCardStatus.ESTIMATE_PENDING,
+                            fromStatus:
+                                JobCardStatus.ESTIMATE_PENDING,
 
-                                toStatus:
-                                    JobCardStatus.CUSTOMER_APPROVAL,
+                            toStatus:
+                                JobCardStatus.CUSTOMER_APPROVAL,
 
-                                changedById:
-                                    context.userId,
+                            changedById:
+                                context.userId,
 
-                                note:
-                                    "Estimate sent to customer",
-                            },
-                        });
-                    }
+                            note:
+                                "Estimate sent to customer",
+                        },
+                    });
                 }
 
                 /**
-                 * Estimate APPROVED
+                 * APPROVED
                  *
-                 * Job Card becomes APPROVED.
+                 * CUSTOMER_APPROVAL → APPROVED
                  */
                 if (
                     newStatus ===
                     EstimateStatus.APPROVED
                 ) {
-                    if (
-                        estimate.jobCard.status ===
-                        JobCardStatus.CUSTOMER_APPROVAL
-                    ) {
-                        await tx.jobCard.update({
-                            where: {
-                                id: estimate.jobCard.id,
-                            },
+                    await tx.jobCard.update({
+                        where: {
+                            id: estimate.jobCard.id,
+                        },
 
-                            data: {
-                                status:
-                                    JobCardStatus.APPROVED,
-                            },
-                        });
+                        data: {
+                            status:
+                                JobCardStatus.APPROVED,
+                        },
+                    });
 
-                        await tx.jobCardStatusHistory.create({
-                            data: {
-                                jobCardId:
-                                    estimate.jobCard.id,
+                    await tx.jobCardStatusHistory.create({
+                        data: {
+                            jobCardId:
+                                estimate.jobCard.id,
 
-                                fromStatus:
-                                    JobCardStatus.CUSTOMER_APPROVAL,
+                            fromStatus:
+                                JobCardStatus.CUSTOMER_APPROVAL,
 
-                                toStatus:
-                                    JobCardStatus.APPROVED,
+                            toStatus:
+                                JobCardStatus.APPROVED,
 
-                                changedById:
-                                    context.userId,
+                            changedById:
+                                context.userId,
 
-                                note:
-                                    "Estimate approved",
-                            },
-                        });
-                    }
+                            note:
+                                "Estimate approved",
+                        },
+                    });
                 }
 
                 /**
-                 * Estimate REJECTED
+                 * REJECTED
                  *
-                 * Keep Job Card at CUSTOMER_APPROVAL
-                 * for now. Staff can decide what to do.
+                 * Keep the Job Card at CUSTOMER_APPROVAL.
+                 *
+                 * Later we can support estimate revision.
                  */
                 if (
                     newStatus ===
@@ -842,8 +882,38 @@ export async function updateEstimateStatus(
 
                             jobCardId:
                                 estimate.jobCard.id,
+
+                            workshopId:
+                                context.workshopId,
                         },
                         "Estimate rejected"
+                    );
+                }
+
+                /**
+                 * EXPIRED
+                 *
+                 * No Job Card status change for now.
+                 */
+                if (
+                    newStatus ===
+                    EstimateStatus.EXPIRED
+                ) {
+                    logger.info(
+                        {
+                            requestId:
+                                context.requestId,
+
+                            estimateId:
+                                estimate.id,
+
+                            jobCardId:
+                                estimate.jobCard.id,
+
+                            workshopId:
+                                context.workshopId,
+                        },
+                        "Estimate expired"
                     );
                 }
 
