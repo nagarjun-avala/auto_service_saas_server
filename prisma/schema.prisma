@@ -172,6 +172,21 @@ enum EstimateItemType {
   OTHER
 }
 
+enum PartType {
+  OEM
+  AFTERMARKET
+  USED
+  OTHER
+}
+
+enum StockTransactionType {
+  PURCHASE
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  JOB_CARD_USAGE
+  RETURN
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -198,20 +213,22 @@ model Workshop {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  branches       Branch[]
-  customers      Customer[]
-  vehicles       Vehicle[]
-  jobCards       JobCard[]
-  inspections    Inspection[]
-  estimates      Estimate[]
-  inventoryItems InventoryItem[]
-  categories     InventoryCategory[]
-  suppliers      Supplier[]
-  invoices       Invoice[]
-  payments       Payment[]
-  reminders      ServiceReminder[]
-  notifications  Notification[]
+  users             User[]
+  branches          Branch[]
+  customers         Customer[]
+  vehicles          Vehicle[]
+  jobCards          JobCard[]
+  inspections       Inspection[]
+  estimates         Estimate[]
+  inventoryItems    InventoryItem[]
+  categories        InventoryCategory[]
+  suppliers         Supplier[]
+  invoices          Invoice[]
+  payments          Payment[]
+  reminders         ServiceReminder[]
+  notifications     Notification[]
+  parts             Part[]
+  stockTransactions StockTransaction[]
 
   @@index([name])
 }
@@ -280,6 +297,7 @@ model User {
   statusChanges        JobCardStatusHistory[]
   inspectionsCompleted Inspection[]
   refreshTokens        RefreshToken[]
+  stockTransactions    StockTransaction[]
 
   @@index([workshopId])
   @@index([branchId])
@@ -654,6 +672,83 @@ model LabourItem {
 
   @@index([jobCardId])
   @@index([technicianId])
+}
+
+model Part {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  workshopId String @db.ObjectId
+
+  partNumber String
+  name       String
+
+  description String?
+
+  type PartType @default(OEM)
+
+  brand String?
+
+  category String?
+
+  unit String @default("PCS")
+
+  purchasePrice Int @default(0)
+  sellingPrice  Int @default(0)
+
+  taxRate Int @default(0)
+
+  minStock Int  @default(0)
+  maxStock Int?
+
+  currentStock Int @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  stockTransactions StockTransaction[]
+
+  @@unique([workshopId, partNumber])
+  @@index([workshopId])
+  @@index([name])
+  @@index([category])
+  @@index([brand])
+  @@index([isActive])
+}
+
+model StockTransaction {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  workshopId String @db.ObjectId
+  partId     String @db.ObjectId
+
+  type StockTransactionType
+
+  quantity Int
+
+  unitCost Int?
+
+  referenceId String?
+
+  notes String?
+
+  createdById String @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  part Part @relation(fields: [partId], references: [id])
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([workshopId])
+  @@index([partId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 // ============================================================
