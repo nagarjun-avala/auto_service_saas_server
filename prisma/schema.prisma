@@ -187,6 +187,11 @@ enum StockTransactionType {
   RETURN
 }
 
+enum PurchaseStatus {
+  RECEIVED
+  CANCELLED
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -229,6 +234,7 @@ model Workshop {
   notifications     Notification[]
   parts             Part[]
   stockTransactions StockTransaction[]
+  purchases         Purchase[]
 
   @@index([name])
 }
@@ -298,6 +304,7 @@ model User {
   inspectionsCompleted Inspection[]
   refreshTokens        RefreshToken[]
   stockTransactions    StockTransaction[]
+  purchases            Purchase[]
 
   @@index([workshopId])
   @@index([branchId])
@@ -710,6 +717,7 @@ model Part {
   workshop Workshop @relation(fields: [workshopId], references: [id])
 
   stockTransactions StockTransaction[]
+  purchaseItems     PurchaseItem[]
 
   @@unique([workshopId, partNumber])
   @@index([workshopId])
@@ -899,14 +907,84 @@ model Supplier {
   workshop Workshop @relation(fields: [workshopId], references: [id])
 
   // purchases Purchase[]
-  branch   Branch? @relation(fields: [branchId], references: [id])
-  branchId String? @db.ObjectId
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?    @db.ObjectId
+  purchases Purchase[]
 
   @@index([workshopId])
   @@index([name])
   @@index([phone])
   @@index([gstNumber])
   @@index([isActive])
+}
+
+model Purchase {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  workshopId String @db.ObjectId
+  supplierId String @db.ObjectId
+
+  purchaseNumber String
+
+  status PurchaseStatus @default(RECEIVED)
+
+  invoiceNumber String?
+  invoiceDate   DateTime?
+
+  subtotal   Int @default(0)
+  discount   Int @default(0)
+  taxAmount  Int @default(0)
+  grandTotal Int @default(0)
+
+  notes String?
+
+  receivedAt DateTime @default(now())
+
+  createdById String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  items PurchaseItem[]
+
+  @@unique([workshopId, purchaseNumber])
+  @@index([workshopId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PurchaseItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  purchaseId String @db.ObjectId
+  partId     String @db.ObjectId
+
+  quantity Int
+
+  unitCost Int
+
+  discount Int @default(0)
+  taxRate  Int @default(0)
+
+  taxAmount Int @default(0)
+  total     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id])
+
+  part Part @relation(fields: [partId], references: [id])
+
+  @@index([purchaseId])
+  @@index([partId])
 }
 
 // ============================================================

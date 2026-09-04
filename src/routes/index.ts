@@ -8,9 +8,10 @@ import vehicleRoutes from "../modules/vehicles/vehicle.routes.js";
 import jobCardRoutes from "../modules/job-cards/job-card.routes.js";
 import inspectionRoutes from "../modules/inspections/inspection.routes.js";
 import estimateRoutes from "../modules/estimates/estimate.routes.js";
-import partRoutes from "../modules/inventory/part.routes.js";
+import partRoutes from "../modules/parts/part.routes.js";
 import stockRoutes from "../modules/inventory/stock.routes.js";
-import supplierRoutes from "../modules/inventory/supplier.routes.js";
+import supplierRoutes from "../modules/suppliers/supplier.routes.js";
+import purchaseRoutes from "../modules/purchase/purchase.routes.js";
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use("/estimates", estimateRoutes);
 router.use("/parts", partRoutes);
 router.use("/inventory", stockRoutes);
 router.use("/suppliers", supplierRoutes);
+router.use("/purchases", purchaseRoutes);
 
 export { router };
