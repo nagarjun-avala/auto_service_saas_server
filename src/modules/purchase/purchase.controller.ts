@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 
+import { AppError } from "@/utils/app-error.js";
+
 import {
     createPurchase,
     getPurchase,
@@ -10,8 +12,6 @@ import {
     createPurchaseSchema,
     listPurchasesSchema,
 } from "./purchase.validation.js";
-
-import { AppError } from "../../utils/app-error.js";
 
 function getAuthContext(req: Request) {
     if (!req.user) {
@@ -53,11 +53,9 @@ export async function getPurchaseController(
 ) {
     const context = getAuthContext(req);
 
-    const purchaseId = String(req.params.id);
-
     const purchase = await getPurchase(
         context,
-        purchaseId
+        String(req.params.id)
     );
 
     return res.status(200).json({

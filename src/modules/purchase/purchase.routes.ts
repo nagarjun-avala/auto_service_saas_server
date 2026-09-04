@@ -14,14 +14,12 @@ const router = Router();
 
 router.use(authenticate);
 
-// Create purchase
 router.post(
     "/",
     requireRole("ADMIN", "SERVICE_ADVISOR"),
     createPurchaseController
 );
 
-// List purchases
 router.get(
     "/",
     requireRole(
@@ -33,7 +31,6 @@ router.get(
     listPurchasesController
 );
 
-// Get purchase
 router.get(
     "/:id",
     requireRole(

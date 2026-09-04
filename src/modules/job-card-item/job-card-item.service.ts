@@ -1,17 +1,12 @@
-import type { Prisma } from "../../generated/prisma/client.js";
+import prisma from "@/config/db";
 import {
     JobCardItemType,
     JobCardStatus,
     StockTransactionType,
-} from "../../generated/prisma/client.js";
-
-import prisma from "../../config/db.js";
-
-import type {
-    CreateJobCardItemInput,
-} from "./job-card-item.types.js";
-import { AppError } from "@/utils/app-error.js";
-import { AuthContext } from "@/types/auth-context.js";
+} from "@/generated/prisma/enums";
+import { AuthContext } from "@/types/auth-context";
+import { AppError } from "@/utils/app-error";
+import type { CreateJobCardItemInput } from "./job-card-item.types";
 
 function calculateItemTotal(
     quantity: number,
@@ -24,7 +19,7 @@ function calculateItemTotal(
     const taxableAmount = gross - discount;
 
     const taxAmount = Math.round(
-        taxableAmount * taxRate / 100
+        (taxableAmount * taxRate) / 100
     );
 
     return {
@@ -68,18 +63,20 @@ export async function addJobCardItem(
 
     assertEditableJobCard(jobCard.status);
 
-    if (
-        input.type === JobCardItemType.PART &&
-        !input.partId
-    ) {
-        throw new AppError(
-            "partId is required for PART items",
-            400,
-            "PART_ID_REQUIRED"
-        );
-    }
+    let unitPrice = input.unitPrice;
+    let taxRate = input.taxRate;
+    let description = input.description;
+    let partId = input.partId ?? null;
 
-    if (input.partId) {
+    if (input.type === JobCardItemType.PART) {
+        if (!input.partId) {
+            throw new AppError(
+                "partId is required for PART items",
+                400,
+                "PART_ID_REQUIRED"
+            );
+        }
+
         const part = await prisma.part.findFirst({
             where: {
                 id: input.partId,
@@ -95,26 +92,48 @@ export async function addJobCardItem(
                 "PART_NOT_FOUND"
             );
         }
+
+        // Server owns PART pricing.
+        unitPrice = part.sellingPrice;
+        taxRate = part.taxRate;
+
+        description = part.name;
+    } else {
+        partId = null;
     }
 
-    const { taxAmount, total } =
-        calculateItemTotal(
-            input.quantity,
-            input.unitPrice,
-            input.discount,
-            input.taxRate
+    const itemValue =
+        input.quantity * unitPrice;
+
+    if (input.discount > itemValue) {
+        throw new AppError(
+            "Discount cannot exceed item value",
+            400,
+            "INVALID_DISCOUNT"
         );
+    }
+
+    const taxableAmount =
+        itemValue - input.discount;
+
+    const taxAmount = Math.round(
+        taxableAmount * taxRate / 100
+    );
+
+    const total =
+        taxableAmount + taxAmount;
 
     return prisma.jobCardItem.create({
         data: {
             jobCardId,
             type: input.type,
-            partId: input.partId ?? null,
-            description: input.description,
+            partId,
+            description,
             quantity: input.quantity,
-            unitPrice: input.unitPrice,
+            consumedQuantity: 0,
+            unitPrice,
             discount: input.discount,
-            taxRate: input.taxRate,
+            taxRate,
             taxAmount,
             total,
         },
@@ -236,23 +255,23 @@ export async function consumePart(
         );
     }
 
-    if (quantity > item.quantity) {
+    const remainingPlannedQuantity =
+        item.quantity - item.consumedQuantity;
+
+    if (quantity > remainingPlannedQuantity) {
         throw new AppError(
-            "Consumed quantity cannot exceed planned quantity",
+            `Cannot consume more than remaining planned quantity (${remainingPlannedQuantity})`,
             400,
             "INVALID_CONSUMPTION_QUANTITY"
         );
     }
 
-    if (item.part.currentStock < quantity) {
-        throw new AppError(
-            "Insufficient stock",
-            409,
-            "INSUFFICIENT_STOCK"
-        );
-    }
-
     return prisma.$transaction(async (tx) => {
+        /*
+         * Re-read the part inside the transaction.
+         * This prevents relying on the potentially stale
+         * value from the earlier query.
+         */
         const part = await tx.part.findFirst({
             where: {
                 id: item.partId!,
@@ -277,6 +296,9 @@ export async function consumePart(
             );
         }
 
+        /*
+         * Reduce inventory.
+         */
         await tx.part.update({
             where: {
                 id: part.id,
@@ -288,6 +310,24 @@ export async function consumePart(
             },
         });
 
+        /*
+         * Increase consumed quantity on the
+         * Job Card Item.
+         */
+        await tx.jobCardItem.update({
+            where: {
+                id: item.id,
+            },
+            data: {
+                consumedQuantity: {
+                    increment: quantity,
+                },
+            },
+        });
+
+        /*
+         * Record inventory movement.
+         */
         await tx.stockTransaction.create({
             data: {
                 workshopId: context.workshopId,
@@ -300,12 +340,20 @@ export async function consumePart(
             },
         });
 
+        const newConsumedQuantity =
+            item.consumedQuantity + quantity;
+
         return {
             partId: part.id,
             jobCardId,
-            itemId,
+            itemId: item.id,
             quantityConsumed: quantity,
-            remainingStock: part.currentStock - quantity,
+            consumedQuantity: newConsumedQuantity,
+            plannedQuantity: item.quantity,
+            remainingQuantity:
+                item.quantity - newConsumedQuantity,
+            remainingStock:
+                part.currentStock - quantity,
         };
     });
 }
