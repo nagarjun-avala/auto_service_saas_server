@@ -266,14 +266,14 @@ model User {
 }
 
 model RefreshToken {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
 
-  tokenHash String @unique
+  tokenHash String
 
-  expiresAt DateTime
-  revokedAt DateTime?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokedReason String?
 
   createdAt DateTime @default(now())
 

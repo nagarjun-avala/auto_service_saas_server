@@ -1,25 +1,51 @@
-import db from "../../config/db.js";
+import { RequestContext } from "@/types/request-context.js";
+import prisma from "../../config/db.js";
 import { logger } from "../../config/logger.js";
 import { AppError } from "../../utils/app-error.js";
+
 import {
-    verifyPassword,
     generateAccessToken,
     generateRefreshToken,
     hashToken,
+    verifyPassword,
 } from "./auth.utils.js";
-import type { LoginInput } from "./auth.validation.js";
+
+import type {
+    LoginInput,
+    RefreshTokenInput,
+} from "./auth.validation.js";
 
 export const authService = {
-    async login(input: LoginInput) {
-        const email = input.email.toLowerCase();
+    // ==========================================================
+    // LOGIN
+    // ==========================================================
 
-        const user = await db.user.findFirst({
+    async login(
+        input: LoginInput,
+        context: RequestContext
+    ) {
+        const email = input.email
+            .trim()
+            .toLowerCase();
+
+        // --------------------------------------------------------
+        // Find user
+        // --------------------------------------------------------
+
+        const user = await prisma.user.findUnique({
             where: {
                 email,
             },
         });
 
         if (!user) {
+            logger.warn(
+                {
+                    requestId: context.requestId,
+                },
+                "Login failed: invalid credentials"
+            );
+
             throw new AppError(
                 "Invalid credentials",
                 401,
@@ -27,7 +53,19 @@ export const authService = {
             );
         }
 
+        // --------------------------------------------------------
+        // Check account status
+        // --------------------------------------------------------
+
         if (user.status !== "ACTIVE") {
+            logger.warn(
+                {
+                    userId: user.id,
+                    workshopId: user.workshopId,
+                },
+                "Login failed: account inactive"
+            );
+
             throw new AppError(
                 "Account is inactive",
                 403,
@@ -35,19 +73,35 @@ export const authService = {
             );
         }
 
-        const validPassword =
+        // --------------------------------------------------------
+        // Verify password
+        // --------------------------------------------------------
+
+        const passwordValid =
             await verifyPassword(
                 input.password,
                 user.password
             );
 
-        if (!validPassword) {
+        if (!passwordValid) {
+            logger.warn(
+                {
+                    userId: user.id,
+                    workshopId: user.workshopId,
+                },
+                "Login failed: invalid credentials"
+            );
+
             throw new AppError(
                 "Invalid credentials",
                 401,
                 "INVALID_CREDENTIALS"
             );
         }
+
+        // --------------------------------------------------------
+        // Generate access token
+        // --------------------------------------------------------
 
         const accessToken =
             generateAccessToken({
@@ -56,27 +110,50 @@ export const authService = {
                 role: user.role,
             });
 
+        // --------------------------------------------------------
+        // Generate refresh token
+        // --------------------------------------------------------
+
         const refreshToken =
             generateRefreshToken();
 
-        const tokenHash =
+        const refreshTokenHash =
             hashToken(refreshToken);
+
+        // --------------------------------------------------------
+        // Refresh token expiration
+        // --------------------------------------------------------
 
         const expiresAt = new Date();
 
+        const refreshTokenDays =
+            Number(
+                process.env.REFRESH_TOKEN_DAYS || 7
+            );
+
         expiresAt.setDate(
-            expiresAt.getDate() + 7
+            expiresAt.getDate() +
+            refreshTokenDays
         );
 
-        await db.refreshToken.create({
-            data: {
-                userId: user.id,
-                tokenHash,
-                expiresAt,
-            },
-        });
+        // --------------------------------------------------------
+        // Store refresh token hash
+        // --------------------------------------------------------
 
-        await db.user.update({
+        const storedRefreshToken =
+            await prisma.refreshToken.create({
+                data: {
+                    userId: user.id,
+                    tokenHash: refreshTokenHash,
+                    expiresAt,
+                },
+            });
+
+        // --------------------------------------------------------
+        // Update last login
+        // --------------------------------------------------------
+
+        await prisma.user.update({
             where: {
                 id: user.id,
             },
@@ -85,10 +162,28 @@ export const authService = {
             },
         });
 
+        // --------------------------------------------------------
+        // Log successful login
+        // --------------------------------------------------------
+
+        logger.info(
+            {
+                requestId: context.requestId,
+                userId: user.id,
+                workshopId: user.workshopId,
+                refreshTokenId: storedRefreshToken.id,
+            },
+            "User login successful"
+        );
+
+        // --------------------------------------------------------
+        // Return response
+        // --------------------------------------------------------
+
         return {
             accessToken,
             refreshToken,
-            message: "User login successful",
+
             user: {
                 id: user.id,
                 firstName: user.firstName,
@@ -102,68 +197,40 @@ export const authService = {
             },
         };
     },
-    async refresh(params: { refreshToken: string }) {
-        const { refreshToken } = params;
-        const tokenHash = hashToken(refreshToken);
-        const token = await db.refreshToken.findFirst({
-            where: {
-                tokenHash,
-            },
-        });
-        if (!token) {
-            throw new Error("Invalid refresh token");
-        }
-        if (token.expiresAt < new Date()) {
-            throw new Error("Refresh token expired");
-        }
-        const user = await db.user.findFirst({
-            where: {
-                id: token.userId,
-            },
-        });
-        if (!user) {
-            throw new Error("User not found");
-        }
-        const accessToken = generateAccessToken({
-            sub: user.id,
-            workshopId: user.workshopId,
-            role: user.role,
-        });
-        return {
-            success: true,
-            accessToken,
-            user: {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                phone: user.phone,
-                role: user.role,
-                status: user.status,
-                workshopId: user.workshopId,
-                branchId: user.branchId,
-            },
-        };
-    },
-    async getCurrentUser(userId: string) {
-        const user = await db.user.findUnique({
-            where: {
-                id: userId,
-            },
-            select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                phone: true,
-                role: true,
-                status: true,
-                workshopId: true,
-                branchId: true,
-                lastLoginAt: true,
-                createdAt: true,
-            },
-        });
+
+    // ==========================================================
+    // GET CURRENT USER
+    // ==========================================================
+
+    async getCurrentUser(
+        userId: string,
+        context: RequestContext
+    ) {
+        const user =
+            await prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    role: true,
+                    status: true,
+                    workshopId: true,
+                    branchId: true,
+                    lastLoginAt: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            });
+
+        // --------------------------------------------------------
+        // User doesn't exist
+        // --------------------------------------------------------
 
         if (!user) {
             throw new AppError(
@@ -173,6 +240,10 @@ export const authService = {
             );
         }
 
+        // --------------------------------------------------------
+        // User inactive
+        // --------------------------------------------------------
+
         if (user.status !== "ACTIVE") {
             throw new AppError(
                 "Account is inactive",
@@ -181,19 +252,297 @@ export const authService = {
             );
         }
 
+        // --------------------------------------------------------
+        // Logging
+        // --------------------------------------------------------
+
+        logger.debug(
+            {
+                userId: user.id,
+                workshopId: user.workshopId,
+            },
+            "Current user retrieved"
+        );
+
         return user;
     },
-    async logout(params: { userId: string, refreshToken: string }) {
-        const { userId, refreshToken } = params;
-        const tokenHash = hashToken(refreshToken);
-        await db.refreshToken.delete({
+
+    // ==========================================================
+    // REFRESH TOKEN
+    // ==========================================================
+
+    async refresh(
+        input: RefreshTokenInput,
+        context: RequestContext
+    ) {
+        const tokenHash =
+            hashToken(input.refreshToken);
+
+        // --------------------------------------------------------
+        // Find stored refresh token
+        // --------------------------------------------------------
+
+        const storedToken =
+            await prisma.refreshToken.findFirst({
+                where: {
+                    tokenHash,
+                },
+
+                include: {
+                    user: true,
+                },
+            });
+
+        if (!storedToken) {
+            logger.warn(
+                "Refresh failed: token not found"
+            );
+
+            throw new AppError(
+                "Invalid refresh token",
+                401,
+                "INVALID_REFRESH_TOKEN"
+            );
+        }
+
+        // --------------------------------------------------------
+        // Check revoked token
+        // --------------------------------------------------------
+
+        if (storedToken.revokedAt) {
+            logger.warn(
+                {
+                    refreshTokenId:
+                        storedToken.id,
+                    userId: storedToken.userId,
+                },
+                "Refresh failed: token already revoked"
+            );
+
+            throw new AppError(
+                "Refresh token has been revoked",
+                401,
+                "REFRESH_TOKEN_REVOKED"
+            );
+        }
+
+        // --------------------------------------------------------
+        // Check expiration
+        // --------------------------------------------------------
+
+        if (
+            storedToken.expiresAt.getTime() <=
+            Date.now()
+        ) {
+            logger.warn(
+                {
+                    refreshTokenId:
+                        storedToken.id,
+                    userId: storedToken.userId,
+                },
+                "Refresh failed: token expired"
+            );
+
+            throw new AppError(
+                "Refresh token has expired",
+                401,
+                "REFRESH_TOKEN_EXPIRED"
+            );
+        }
+
+        // --------------------------------------------------------
+        // Check user status
+        // --------------------------------------------------------
+
+        const user = storedToken.user;
+
+        if (user.status !== "ACTIVE") {
+            logger.warn(
+                {
+                    userId: user.id,
+                    workshopId: user.workshopId,
+                },
+                "Refresh failed: account inactive"
+            );
+
+            throw new AppError(
+                "Account is inactive",
+                403,
+                "ACCOUNT_INACTIVE"
+            );
+        }
+
+        // --------------------------------------------------------
+        // Revoke old refresh token
+        // --------------------------------------------------------
+
+        await prisma.refreshToken.update({
             where: {
-                tokenHash,
+                id: storedToken.id,
+            },
+
+            data: {
+                revokedAt: new Date(),
+                revokedReason: "ROTATED",
             },
         });
+
+        // --------------------------------------------------------
+        // Generate new access token
+        // --------------------------------------------------------
+
+        const accessToken =
+            generateAccessToken({
+                sub: user.id,
+                workshopId: user.workshopId,
+                role: user.role,
+            });
+
+        // --------------------------------------------------------
+        // Generate new refresh token
+        // --------------------------------------------------------
+
+        const newRefreshToken =
+            generateRefreshToken();
+
+        const newRefreshTokenHash =
+            hashToken(newRefreshToken);
+
+        // --------------------------------------------------------
+        // Calculate new expiry
+        // --------------------------------------------------------
+
+        const expiresAt = new Date();
+
+        const refreshTokenDays =
+            Number(
+                process.env.REFRESH_TOKEN_DAYS || 7
+            );
+
+        expiresAt.setDate(
+            expiresAt.getDate() +
+            refreshTokenDays
+        );
+
+        // --------------------------------------------------------
+        // Store new refresh token
+        // --------------------------------------------------------
+
+        const newStoredToken =
+            await prisma.refreshToken.create({
+                data: {
+                    userId: user.id,
+                    tokenHash:
+                        newRefreshTokenHash,
+                    expiresAt,
+                },
+            });
+
+        // --------------------------------------------------------
+        // Log rotation
+        // --------------------------------------------------------
+
+        logger.info(
+            {
+                requestId: context.requestId,
+                userId: user.id,
+                workshopId: user.workshopId,
+                oldRefreshTokenId: storedToken.id,
+                newRefreshTokenId: newStoredToken.id,
+            },
+            "Refresh token rotated"
+        );
+
+        // --------------------------------------------------------
+        // Return new tokens
+        // --------------------------------------------------------
+
         return {
-            success: true,
-            message: "Logged out successfully",
+            accessToken,
+            refreshToken: newRefreshToken,
         };
+    },
+
+    // ==========================================================
+    // LOGOUT
+    // ==========================================================
+
+    async logout(
+        userId: string,
+        refreshToken: string,
+        context: RequestContext
+    ) {
+        const tokenHash =
+            hashToken(refreshToken);
+
+        // --------------------------------------------------------
+        // Find token belonging to current user
+        // --------------------------------------------------------
+
+        const storedToken =
+            await prisma.refreshToken.findFirst({
+                where: {
+                    tokenHash,
+                    userId,
+                },
+            });
+
+        // --------------------------------------------------------
+        // Idempotent logout
+        // --------------------------------------------------------
+        // If the token doesn't exist or was already revoked,
+        // there's no need to expose this information to the client.
+
+        if (!storedToken) {
+            logger.debug(
+                {
+                    userId,
+                },
+                "Logout requested for unknown refresh token"
+            );
+
+            return;
+        }
+
+        if (storedToken.revokedAt) {
+            logger.debug(
+                {
+                    userId,
+                    refreshTokenId:
+                        storedToken.id,
+                },
+                "Logout requested for already revoked token"
+            );
+
+            return;
+        }
+
+        // --------------------------------------------------------
+        // Revoke refresh token
+        // --------------------------------------------------------
+
+        await prisma.refreshToken.update({
+            where: {
+                id: storedToken.id,
+            },
+
+            data: {
+                revokedAt: new Date(),
+                revokedReason: "LOGOUT",
+            },
+        });
+
+        // --------------------------------------------------------
+        // Log logout
+        // --------------------------------------------------------
+
+        logger.info(
+            {
+                requestId: context.requestId,
+                userId,
+                refreshTokenId: storedToken.id,
+            },
+            "User logged out"
+        );
     },
 };

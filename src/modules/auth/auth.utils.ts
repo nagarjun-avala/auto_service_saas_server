@@ -4,7 +4,8 @@ import jwt, {
     type SignOptions,
 } from "jsonwebtoken";
 
-import { UserRole } from "../../generated/prisma/client.js";
+import { UserRole } from "../../generated/prisma/enums.js";
+import { env } from "../../config/env.js";
 
 export async function hashPassword(password: string) {
     return bcrypt.hash(password, 10);
@@ -25,11 +26,11 @@ export function generateAccessToken(
     payload: AccessTokenPayload
 ) {
     const expiresIn =
-        process.env.JWT_ACCESS_EXPIRES_IN || "15m";
+        env.JWT_ACCESS_EXPIRES_IN || "15m";
 
     return jwt.sign(
         payload,
-        process.env.JWT_ACCESS_SECRET!,
+        env.JWT_ACCESS_SECRET!,
         {
             expiresIn,
         } as SignOptions
@@ -39,10 +40,20 @@ export function generateAccessToken(
 export function verifyAccessToken(
     token: string
 ): AccessTokenPayload {
-    return jwt.verify(
+    const payload = jwt.verify(
         token,
-        process.env.JWT_ACCESS_SECRET!
-    ) as AccessTokenPayload;
+        env.JWT_ACCESS_SECRET!
+    );
+
+    if (
+        !isAccessTokenPayload(payload)
+    ) {
+        throw new Error(
+            "Invalid access token payload"
+        );
+    }
+
+    return payload;
 }
 
 export function generateRefreshToken() {
@@ -56,3 +67,36 @@ export function hashToken(token: string) {
         .digest("hex");
 }
 
+export function getRefreshTokenExpiry() {
+    const days = env.REFRESH_TOKEN_DAYS;
+
+    const expiresAt = new Date();
+
+    expiresAt.setDate(
+        expiresAt.getDate() + days
+    );
+
+    return expiresAt;
+}
+
+export function isAccessTokenPayload(
+    payload: unknown
+): payload is AccessTokenPayload {
+    if (
+        typeof payload !== "object" ||
+        payload === null
+    ) {
+        return false;
+    }
+
+    const data =
+        payload as Record<string, unknown>;
+
+    return (
+        typeof data.sub === "string" &&
+        typeof data.workshopId === "string" &&
+        Object.values(UserRole).includes(
+            data.role as UserRole
+        )
+    );
+}
