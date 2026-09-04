@@ -166,6 +166,12 @@ enum InspectionType {
   INSURANCE
 }
 
+enum EstimateItemType {
+  LABOUR
+  PART
+  OTHER
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -558,20 +564,18 @@ model InspectionItem {
 // ============================================================
 
 model Estimate {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  workshopId String @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
+  workshopId String @db.ObjectId
   jobCardId  String @db.ObjectId
-  customerId String @db.ObjectId
 
   estimateNumber String
+  status         EstimateStatus @default(DRAFT)
 
-  status EstimateStatus @default(DRAFT)
-
-  subtotal   Float @default(0)
-  discount   Float @default(0)
-  taxAmount  Float @default(0)
-  grandTotal Float @default(0)
+  subtotal   Int @default(0)
+  discount   Int @default(0)
+  taxAmount  Int @default(0)
+  grandTotal Int @default(0)
 
   notes String?
 
@@ -584,15 +588,16 @@ model Estimate {
 
   workshop Workshop @relation(fields: [workshopId], references: [id])
   jobCard  JobCard  @relation(fields: [jobCardId], references: [id])
-  customer Customer @relation(fields: [customerId], references: [id])
 
-  items EstimateItem[]
+  items      EstimateItem[]
+  customer   Customer?      @relation(fields: [customerId], references: [id])
+  customerId String?        @db.ObjectId
 
   @@unique([workshopId, estimateNumber])
   @@unique([jobCardId])
   @@index([workshopId])
-  @@index([customerId])
   @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================================
@@ -600,26 +605,26 @@ model Estimate {
 // ============================================================
 
 model EstimateItem {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   estimateId String @db.ObjectId
 
-  type ItemType
-
+  type        EstimateItemType
   description String
 
-  inventoryItemId String? @db.ObjectId
-
-  quantity  Float @default(1)
-  unitPrice Float @default(0)
-  amount    Float @default(0)
+  quantity  Int @default(1)
+  unitPrice Int @default(0)
+  discount  Int @default(0)
+  taxRate   Int @default(0)
+  total     Int @default(0)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   estimate Estimate @relation(fields: [estimateId], references: [id])
-  // inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
 
   @@index([estimateId])
-  @@index([inventoryItemId])
+  @@index([type])
 }
 
 // ============================================================

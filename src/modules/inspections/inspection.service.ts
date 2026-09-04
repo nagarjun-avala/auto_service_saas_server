@@ -54,7 +54,7 @@ export const inspectionService = {
         // Only appropriate statuses
         // --------------------------------------------------------
 
-        const allowedStatuses = [
+        const allowedStatuses: JobCardStatus[] = [
             JobCardStatus.RECEIVED,
             JobCardStatus.INSPECTION,
         ];
