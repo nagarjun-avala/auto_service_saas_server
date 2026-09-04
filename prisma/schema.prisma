@@ -874,16 +874,22 @@ model StockMovement {
 // ============================================================
 
 model Supplier {
-  id         String  @id @default(auto()) @map("_id") @db.ObjectId
-  workshopId String  @db.ObjectId
-  branchId   String? @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name    String
-  phone   String?
-  email   String?
+  workshopId String @db.ObjectId
+
+  name String
+
+  contactPerson String?
+
+  phone String?
+  email String?
+
   address String?
-  gstin   String?
-  notes   String?
+
+  gstNumber String?
+
+  notes String?
 
   isActive Boolean @default(true)
 
@@ -891,11 +897,16 @@ model Supplier {
   updatedAt DateTime @updatedAt
 
   workshop Workshop @relation(fields: [workshopId], references: [id])
-  branch   Branch?  @relation(fields: [branchId], references: [id])
+
+  // purchases Purchase[]
+  branch   Branch? @relation(fields: [branchId], references: [id])
+  branchId String? @db.ObjectId
 
   @@index([workshopId])
   @@index([name])
   @@index([phone])
+  @@index([gstNumber])
+  @@index([isActive])
 }
 
 // ============================================================

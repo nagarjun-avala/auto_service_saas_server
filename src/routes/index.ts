@@ -9,6 +9,8 @@ import jobCardRoutes from "../modules/job-cards/job-card.routes.js";
 import inspectionRoutes from "../modules/inspections/inspection.routes.js";
 import estimateRoutes from "../modules/estimates/estimate.routes.js";
 import partRoutes from "../modules/inventory/part.routes.js";
+import stockRoutes from "../modules/inventory/stock.routes.js";
+import supplierRoutes from "../modules/inventory/supplier.routes.js";
 
 const router = Router();
 
@@ -21,5 +23,7 @@ router.use("/job-cards", jobCardRoutes);
 router.use("/", inspectionRoutes); // balence url is attached in inspection.routes.ts
 router.use("/estimates", estimateRoutes);
 router.use("/parts", partRoutes);
+router.use("/inventory", stockRoutes);
+router.use("/suppliers", supplierRoutes);
 
 export { router };
