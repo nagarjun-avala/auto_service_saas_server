@@ -156,8 +156,11 @@ enum NotificationType {
 // ============================================================
 
 model Workshop {
-  id      String  @id @default(auto()) @map("_id") @db.ObjectId
-  name    String
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String
+  slug String @unique
+
   phone   String?
   email   String?
   address String?
@@ -235,7 +238,7 @@ model User {
 
   firstName String
   lastName  String
-  email     String?
+  email     String  @unique
   phone     String?
   password  String
 
@@ -247,21 +250,37 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workshop Workshop? @relation(fields: [workshopId], references: [id])
-  branch   Branch?   @relation(fields: [branchId], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  branch   Branch?  @relation(fields: [branchId], references: [id])
 
-  createdJobCards    JobCard[] @relation("JobCardCreatedBy")
-  advisorJobCards    JobCard[] @relation("JobCardAdvisor")
-  technicianJobCards JobCard[] @relation("JobCardTechnician")
-
+  createdJobCards      JobCard[]              @relation("JobCardCreatedBy")
+  advisorJobCards      JobCard[]              @relation("JobCardAdvisor")
+  technicianJobCards   JobCard[]              @relation("JobCardTechnician")
   statusChanges        JobCardStatusHistory[]
   inspectionsCompleted Inspection[]
+  refreshTokens        RefreshToken[]
 
   @@index([workshopId])
   @@index([branchId])
-  @@index([email])
   @@index([phone])
-  @@map("users")
+}
+
+model RefreshToken {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+
+  tokenHash String @unique
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ============================================================

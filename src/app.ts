@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { router } from "./routes";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
+import { requestLogger } from "./middlewares/request-logger.middleware";
 
 const app = express();
 
@@ -19,6 +20,16 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Request logging should be registered before routes.
+app.use(requestLogger);
+
+app.use((req, res, next) => {
+    if (req.id) {
+        res.setHeader("X-Request-ID", String(req.id));
+    }
+    next();
+});
 
 app.get("/", (_req, res) => {
     res.status(200).json({
