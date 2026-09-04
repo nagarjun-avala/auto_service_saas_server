@@ -5,6 +5,7 @@ import workshopRoutes from "../modules/workshops/workshop.routes.js";
 import userRoutes from "../modules/users/user.routes.js";
 import customerRoutes from "../modules/customers/customer.routes.js";
 import vehicleRoutes from "../modules/vehicles/vehicle.routes.js";
+import jobCardRoutes from "../modules/job-cards/job-card.routes.js";
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.use("/workshop", workshopRoutes);
 router.use("/users", userRoutes);
 router.use("/customers", customerRoutes);
 router.use("/vehicles", vehicleRoutes);
+router.use("/job-cards", jobCardRoutes);
 
 export { router };

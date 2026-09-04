@@ -26,35 +26,15 @@ export type AccessTokenPayload = {
 export function generateAccessToken(
     payload: AccessTokenPayload
 ) {
-    const expiresIn =
-        env.JWT_ACCESS_EXPIRES_IN || "15m";
-
+    const expiresIn = (env.JWT_ACCESS_EXPIRES_IN ||
+        "15m") as NonNullable<SignOptions["expiresIn"]>;
     return jwt.sign(
         payload,
         env.JWT_ACCESS_SECRET!,
         {
             expiresIn,
-        } as SignOptions
+        }
     );
-}
-
-export function verifyAccessToken(
-    token: string
-): AccessTokenPayload {
-    const payload = jwt.verify(
-        token,
-        env.JWT_ACCESS_SECRET!
-    );
-
-    if (
-        !isAccessTokenPayload(payload)
-    ) {
-        throw new Error(
-            "Invalid access token payload"
-        );
-    }
-
-    return payload;
 }
 
 export function generateRefreshToken() {
@@ -96,8 +76,27 @@ export function isAccessTokenPayload(
     return (
         typeof data.sub === "string" &&
         typeof data.workshopId === "string" &&
+        (typeof data.branchId === "string" ||
+            data.branchId === null) &&
         Object.values(UserRole).includes(
             data.role as UserRole
         )
     );
+}
+
+export function verifyAccessToken(
+    token: string
+): AccessTokenPayload {
+    const payload = jwt.verify(
+        token,
+        env.JWT_ACCESS_SECRET
+    );
+
+    if (!isAccessTokenPayload(payload)) {
+        throw new Error(
+            "Invalid access token payload"
+        );
+    }
+
+    return payload;
 }

@@ -151,6 +151,21 @@ enum NotificationType {
   GENERAL
 }
 
+enum InspectionItemStatus {
+  PASS
+  ATTENTION
+  FAIL
+  NOT_CHECKED
+}
+
+enum InspectionType {
+  GENERAL
+  SERVICE
+  REPAIR
+  PRE_PURCHASE
+  INSURANCE
+}
+
 // ============================================================
 // WORKSHOP / TENANT
 // ============================================================
@@ -442,6 +457,21 @@ model JobCard {
   @@index([createdAt])
 }
 
+model SequenceCounter {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  workshopId String @db.ObjectId
+
+  key   String
+  value Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workshopId, key])
+  @@index([workshopId])
+}
+
 // ============================================================
 // JOB CARD STATUS HISTORY
 // ============================================================
@@ -470,26 +500,31 @@ model JobCardStatusHistory {
 // ============================================================
 
 model Inspection {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   workshopId String @db.ObjectId
   jobCardId  String @db.ObjectId
 
-  completedById String? @db.ObjectId
+  type InspectionType @default(GENERAL)
 
-  notes       String?
-  completedAt DateTime?
+  technicianId String? @db.ObjectId
+
+  overallNotes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workshop    Workshop @relation(fields: [workshopId], references: [id])
-  jobCard     JobCard  @relation(fields: [jobCardId], references: [id])
-  completedBy User?    @relation(fields: [completedById], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id])
+
+  technician User? @relation(fields: [technicianId], references: [id])
 
   items InspectionItem[]
 
   @@unique([jobCardId])
   @@index([workshopId])
+  @@index([technicianId])
 }
 
 // ============================================================
@@ -497,18 +532,17 @@ model Inspection {
 // ============================================================
 
 model InspectionItem {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   inspectionId String @db.ObjectId
 
   category String
   itemName String
 
-  status InspectionStatus @default(NOT_CHECKED)
+  status InspectionItemStatus @default(NOT_CHECKED)
 
-  note           String?
+  observation    String?
   recommendation String?
-
-  photoUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -516,6 +550,7 @@ model InspectionItem {
   inspection Inspection @relation(fields: [inspectionId], references: [id])
 
   @@index([inspectionId])
+  @@index([status])
 }
 
 // ============================================================

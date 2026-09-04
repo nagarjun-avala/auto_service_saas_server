@@ -5,6 +5,8 @@ import {
     UserStatus,
 } from "../../generated/prisma/enums.js";
 
+import { optionalObjectIdSchema } from "../../utils/validation.js";
+
 export const createUserSchema = z.object({
     firstName: z
         .string()
@@ -39,11 +41,7 @@ export const createUserSchema = z.object({
     role: z
         .nativeEnum(UserRole),
 
-    branchId: z
-        .string()
-        .min(1)
-        .optional()
-        .nullable(),
+    branchId: optionalObjectIdSchema,
 });
 
 export const updateUserSchema = z.object({
@@ -72,11 +70,7 @@ export const updateUserSchema = z.object({
         .nativeEnum(UserRole)
         .optional(),
 
-    branchId: z
-        .string()
-        .min(1)
-        .optional()
-        .nullable(),
+    branchId: optionalObjectIdSchema,
 
     status: z
         .nativeEnum(UserStatus)

@@ -56,7 +56,7 @@ export function authenticate(
         };
 
         return next();
-    } catch {
+    } catch (error) {
         return next(
             new AppError(
                 "Invalid or expired access token",

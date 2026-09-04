@@ -5,14 +5,17 @@ import {
     TransmissionType,
 } from "@prisma/client";
 
+import {
+    objectIdSchema,
+    optionalObjectIdSchema,
+} from "../../utils/validation.js";
+
 // ============================================================
 // CREATE VEHICLE
 // ============================================================
 
 export const createVehicleSchema = z.object({
-    customerId: z
-        .string()
-        .min(1, "Customer ID is required"),
+    customerId: objectIdSchema,
 
     registrationNumber: z
         .string()
@@ -125,10 +128,7 @@ export const createVehicleSchema = z.object({
 // ============================================================
 
 export const updateVehicleSchema = z.object({
-    customerId: z
-        .string()
-        .min(1)
-        .optional(),
+    customerId: objectIdSchema.optional(),
 
     registrationNumber: z
         .string()
@@ -263,9 +263,7 @@ export const getVehiclesQuerySchema = z.object({
         .max(100)
         .optional(),
 
-    customerId: z
-        .string()
-        .optional(),
+    customerId: optionalObjectIdSchema,
 
     make: z
         .string()
