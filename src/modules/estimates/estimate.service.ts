@@ -9,6 +9,7 @@ import { AppError } from "../../utils/app-error.js";
 
 import type {
     CreateEstimateInput,
+    ListEstimatesOptions,
     UpdateEstimateInput,
 } from "./estimate.types.js";
 
@@ -203,53 +204,101 @@ export async function createEstimate(
     /**
      * Create Estimate + Items.
      */
-    const estimate = await prisma.estimate.create({
-        data: {
-            workshopId: context.workshopId,
-            jobCardId: input.jobCardId,
+    const estimate = await prisma.$transaction(
+        async (tx) => {
+            const createdEstimate =
+                await tx.estimate.create({
+                    data: {
+                        workshopId: context.workshopId,
+                        jobCardId: input.jobCardId,
 
-            estimateNumber,
+                        estimateNumber,
 
-            status: EstimateStatus.DRAFT,
+                        status: EstimateStatus.DRAFT,
 
-            subtotal: totals.subtotal,
-            discount: totals.discount,
-            taxAmount: totals.taxAmount,
-            grandTotal: totals.grandTotal,
+                        subtotal: totals.subtotal,
+                        discount: totals.discount,
+                        taxAmount: totals.taxAmount,
+                        grandTotal: totals.grandTotal,
 
-            notes: input.notes ?? null,
+                        notes: input.notes ?? null,
 
-            items: {
-                create: input.items.map((item) => {
-                    const calculated =
-                        calculateItemTotal(
-                            item.quantity,
-                            item.unitPrice,
-                            item.discount,
-                            item.taxRate
-                        );
+                        items: {
+                            create: input.items.map(
+                                (item) => {
+                                    const calculated =
+                                        calculateItemTotal(
+                                            item.quantity,
+                                            item.unitPrice,
+                                            item.discount,
+                                            item.taxRate
+                                        );
 
-                    return {
-                        type: item.type,
-                        description: item.description,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        discount: item.discount,
-                        taxRate: item.taxRate,
-                        total: calculated.total,
-                    };
-                }),
-            },
-        },
+                                    return {
+                                        type: item.type,
+                                        description:
+                                            item.description,
+                                        quantity:
+                                            item.quantity,
+                                        unitPrice:
+                                            item.unitPrice,
+                                        discount:
+                                            item.discount,
+                                        taxRate:
+                                            item.taxRate,
+                                        total:
+                                            calculated.total,
+                                    };
+                                }
+                            ),
+                        },
+                    },
 
-        include: {
-            items: {
-                orderBy: {
-                    createdAt: "asc",
-                },
-            },
-        },
-    });
+                    include: {
+                        items: {
+                            orderBy: {
+                                createdAt: "asc",
+                            },
+                        },
+                    },
+                });
+
+            /**
+             * Once an estimate exists after inspection,
+             * the Job Card moves to ESTIMATE_PENDING.
+             */
+            if (
+                jobCard.status ===
+                JobCardStatus.INSPECTION
+            ) {
+                await tx.jobCard.update({
+                    where: {
+                        id: jobCard.id,
+                    },
+
+                    data: {
+                        status:
+                            JobCardStatus.ESTIMATE_PENDING,
+                    },
+                });
+
+                await tx.jobCardStatusHistory.create({
+                    data: {
+                        jobCardId: jobCard.id,
+                        fromStatus:
+                            JobCardStatus.INSPECTION,
+                        toStatus:
+                            JobCardStatus.ESTIMATE_PENDING,
+                        changedById: context.userId,
+                        note:
+                            "Estimate created",
+                    },
+                });
+            }
+
+            return createdEstimate;
+        }
+    );
 
     logger.info(
         {
@@ -308,6 +357,99 @@ export async function getEstimate(
     }
 
     return estimate;
+}
+
+
+export async function listEstimates(
+    context: AuthContext,
+    options: ListEstimatesOptions
+) {
+    const {
+        page,
+        limit,
+        search,
+        status,
+        sortOrder,
+    } = options;
+
+    const skip = (page - 1) * limit;
+
+    const where = {
+        workshopId: context.workshopId,
+
+        ...(status
+            ? {
+                status,
+            }
+            : {}),
+
+        ...(search
+            ? {
+                OR: [
+                    {
+                        estimateNumber: {
+                            contains: search,
+                            mode: "insensitive" as const,
+                        },
+                    },
+
+                    {
+                        jobCard: {
+                            jobNumber: {
+                                contains: search,
+                                mode: "insensitive" as const,
+                            },
+                        },
+                    },
+                ],
+            }
+            : {}),
+    };
+
+    const [estimates, total] =
+        await Promise.all([
+            prisma.estimate.findMany({
+                where,
+
+                skip,
+                take: limit,
+
+                orderBy: {
+                    createdAt: sortOrder,
+                },
+
+                include: {
+                    items: true,
+
+                    jobCard: {
+                        select: {
+                            id: true,
+                            jobNumber: true,
+                            status: true,
+                            customerId: true,
+                            vehicleId: true,
+                        },
+                    },
+                },
+            }),
+
+            prisma.estimate.count({
+                where,
+            }),
+        ]);
+
+    return {
+        data: estimates,
+
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(
+                total / limit
+            ),
+        },
+    };
 }
 
 /**
@@ -514,6 +656,15 @@ export async function updateEstimateStatus(
                 id: estimateId,
                 workshopId: context.workshopId,
             },
+
+            include: {
+                jobCard: {
+                    select: {
+                        id: true,
+                        status: true,
+                    },
+                },
+            },
         });
 
     if (!estimate) {
@@ -548,26 +699,157 @@ export async function updateEstimateStatus(
         status: newStatus,
     };
 
-    if (newStatus === EstimateStatus.SENT) {
+    if (
+        newStatus ===
+        EstimateStatus.SENT
+    ) {
         data.sentAt = now;
     }
 
-    if (newStatus === EstimateStatus.APPROVED) {
+    if (
+        newStatus ===
+        EstimateStatus.APPROVED
+    ) {
         data.approvedAt = now;
     }
 
-    if (newStatus === EstimateStatus.REJECTED) {
+    if (
+        newStatus ===
+        EstimateStatus.REJECTED
+    ) {
         data.rejectedAt = now;
     }
 
-    const updated =
-        await prisma.estimate.update({
-            where: {
-                id: estimate.id,
-            },
+    const result =
+        await prisma.$transaction(
+            async (tx) => {
+                const updatedEstimate =
+                    await tx.estimate.update({
+                        where: {
+                            id: estimate.id,
+                        },
 
-            data,
-        });
+                        data,
+                    });
+
+                /**
+                 * Estimate SENT
+                 *
+                 * Customer now needs to approve it.
+                 */
+                if (
+                    newStatus ===
+                    EstimateStatus.SENT
+                ) {
+                    if (
+                        estimate.jobCard.status ===
+                        JobCardStatus.ESTIMATE_PENDING
+                    ) {
+                        await tx.jobCard.update({
+                            where: {
+                                id: estimate.jobCard.id,
+                            },
+
+                            data: {
+                                status:
+                                    JobCardStatus.CUSTOMER_APPROVAL,
+                            },
+                        });
+
+                        await tx.jobCardStatusHistory.create({
+                            data: {
+                                jobCardId:
+                                    estimate.jobCard.id,
+
+                                fromStatus:
+                                    JobCardStatus.ESTIMATE_PENDING,
+
+                                toStatus:
+                                    JobCardStatus.CUSTOMER_APPROVAL,
+
+                                changedById:
+                                    context.userId,
+
+                                note:
+                                    "Estimate sent to customer",
+                            },
+                        });
+                    }
+                }
+
+                /**
+                 * Estimate APPROVED
+                 *
+                 * Job Card becomes APPROVED.
+                 */
+                if (
+                    newStatus ===
+                    EstimateStatus.APPROVED
+                ) {
+                    if (
+                        estimate.jobCard.status ===
+                        JobCardStatus.CUSTOMER_APPROVAL
+                    ) {
+                        await tx.jobCard.update({
+                            where: {
+                                id: estimate.jobCard.id,
+                            },
+
+                            data: {
+                                status:
+                                    JobCardStatus.APPROVED,
+                            },
+                        });
+
+                        await tx.jobCardStatusHistory.create({
+                            data: {
+                                jobCardId:
+                                    estimate.jobCard.id,
+
+                                fromStatus:
+                                    JobCardStatus.CUSTOMER_APPROVAL,
+
+                                toStatus:
+                                    JobCardStatus.APPROVED,
+
+                                changedById:
+                                    context.userId,
+
+                                note:
+                                    "Estimate approved",
+                            },
+                        });
+                    }
+                }
+
+                /**
+                 * Estimate REJECTED
+                 *
+                 * Keep Job Card at CUSTOMER_APPROVAL
+                 * for now. Staff can decide what to do.
+                 */
+                if (
+                    newStatus ===
+                    EstimateStatus.REJECTED
+                ) {
+                    logger.info(
+                        {
+                            requestId:
+                                context.requestId,
+
+                            estimateId:
+                                estimate.id,
+
+                            jobCardId:
+                                estimate.jobCard.id,
+                        },
+                        "Estimate rejected"
+                    );
+                }
+
+                return updatedEstimate;
+            }
+        );
 
     logger.info(
         {
@@ -580,5 +862,5 @@ export async function updateEstimateStatus(
         "Estimate status updated"
     );
 
-    return updated;
+    return result;
 }

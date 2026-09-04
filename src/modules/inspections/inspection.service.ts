@@ -170,7 +170,7 @@ export const inspectionService = {
                         jobCardId:
                             jobCard.id,
 
-                        userId:
+                        changedById:
                             context.userId,
 
                         fromStatus:

@@ -1,6 +1,7 @@
 import type {
     EstimateItemType,
-} from "../../generated/prisma/client.js";
+    EstimateStatus,
+} from "../../generated/prisma/enums.js";
 
 /**
  * Estimate item input
@@ -39,4 +40,13 @@ export interface CreateEstimateInput {
 export interface UpdateEstimateInput {
     notes?: string | null | undefined;
     items?: CreateEstimateItemInput[] | undefined;
+}
+
+
+export interface ListEstimatesOptions {
+    page: number;
+    limit: number;
+    search?: string | undefined;
+    status?: EstimateStatus | undefined;
+    sortOrder: "asc" | "desc";
 }

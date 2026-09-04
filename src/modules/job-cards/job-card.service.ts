@@ -321,7 +321,7 @@ export const jobCardService = {
         await prisma.jobCardStatusHistory.create({
             data: {
                 jobCardId: jobCard.id,
-                userId: context.userId,
+                changedById: context.userId,
                 fromStatus: null,
                 toStatus: JobCardStatus.DRAFT,
                 note: "Job card created",
@@ -608,7 +608,7 @@ export const jobCardService = {
                         },
 
                         include: {
-                            user: {
+                            changedBy: {
                                 select: {
                                     id: true,
                                     firstName: true,
@@ -835,7 +835,7 @@ export const jobCardService = {
                         jobCardId:
                             existing.id,
 
-                        userId:
+                        changedById:
                             context.userId,
 
                         fromStatus:

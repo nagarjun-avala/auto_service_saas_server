@@ -81,3 +81,32 @@ export const updateEstimateSchema = z.object({
 export const updateEstimateStatusSchema = z.object({
     status: z.nativeEnum(EstimateStatus),
 });
+
+export const listEstimatesSchema = z.object({
+    page: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .default(1),
+
+    limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(20),
+
+    search: z
+        .string()
+        .trim()
+        .max(100)
+        .optional(),
+
+    status: z
+        .nativeEnum(EstimateStatus)
+        .optional(),
+
+    sortOrder: z
+        .enum(["asc", "desc"])
+        .default("desc"),
+});

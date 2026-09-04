@@ -18,6 +18,14 @@ import {
     updateEstimateStatusSchema,
 } from "./estimate.validation.js";
 
+import {
+    listEstimates,
+} from "./estimate.service.js";
+
+import {
+    listEstimatesSchema,
+} from "./estimate.validation.js";
+
 /**
  * Build AuthContext from authenticated request.
  */
@@ -166,5 +174,27 @@ export async function updateEstimateStatusController(
         message:
             "Estimate status updated successfully",
         data: estimate,
+    });
+}
+
+export async function listEstimatesController(
+    req: Request,
+    res: Response
+) {
+    const context = getAuthContext(req);
+
+    const options =
+        listEstimatesSchema.parse(
+            req.query
+        );
+
+    const result = await listEstimates(
+        context,
+        options
+    );
+
+    return res.status(200).json({
+        success: true,
+        ...result,
     });
 }

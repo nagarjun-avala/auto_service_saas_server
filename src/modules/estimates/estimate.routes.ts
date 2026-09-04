@@ -6,6 +6,7 @@ import { requireRole } from "../../middlewares/role.middleware.js";
 import {
     createEstimateController,
     getEstimateController,
+    listEstimatesController,
     updateEstimateController,
     updateEstimateStatusController,
 } from "./estimate.controller.js";
@@ -85,6 +86,17 @@ router.patch(
         UserRole.SERVICE_ADVISOR
     ),
     updateEstimateStatusController
+);
+
+router.get(
+    "/",
+    requireRole(
+        UserRole.ADMIN,
+        UserRole.SERVICE_ADVISOR,
+        UserRole.TECHNICIAN,
+        UserRole.CASHIER
+    ),
+    listEstimatesController
 );
 
 export default router;

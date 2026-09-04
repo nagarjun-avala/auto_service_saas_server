@@ -483,9 +483,10 @@ model SequenceCounter {
 // ============================================================
 
 model JobCardStatusHistory {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  jobCardId String @db.ObjectId
-  userId    String @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  jobCardId   String @db.ObjectId
+  changedById String @db.ObjectId
 
   fromStatus JobCardStatus?
   toStatus   JobCardStatus
@@ -495,10 +496,13 @@ model JobCardStatusHistory {
   createdAt DateTime @default(now())
 
   jobCard JobCard @relation(fields: [jobCardId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+
+  changedBy User @relation(fields: [changedById], references: [id])
 
   @@index([jobCardId])
-  @@index([userId])
+  @@index([changedById])
+  @@index([createdAt])
+  @@index([toStatus])
 }
 
 // ============================================================
