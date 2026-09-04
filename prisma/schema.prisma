@@ -291,7 +291,8 @@ model Customer {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   workshopId String @db.ObjectId
 
-  name           String
+  firstName      String
+  lastName       String
   phone          String
   email          String?
   alternatePhone String?
@@ -315,7 +316,9 @@ model Customer {
   @@unique([workshopId, phone])
   @@index([workshopId])
   @@index([phone])
-  @@index([name])
+  @@index([firstName])
+  @@index([lastName])
+  @@index([isActive])
 }
 
 // ============================================================
