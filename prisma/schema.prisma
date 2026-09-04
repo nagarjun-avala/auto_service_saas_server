@@ -134,6 +134,11 @@ enum PaymentStatus {
 enum ReminderType {
   DATE_BASED
   ODOMETER_BASED
+  SERVICE_DUE
+  INSURANCE_EXPIRY
+  PUC_EXPIRY
+  WARRANTY_EXPIRY
+  OTHER
 }
 
 enum ReminderStatus {
@@ -1145,15 +1150,12 @@ model Payment {
 model ServiceReminder {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   workshopId String @db.ObjectId
-
   customerId String @db.ObjectId
   vehicleId  String @db.ObjectId
 
-  type   ReminderType
-  status ReminderStatus @default(PENDING)
-
-  dueDate     DateTime?
-  dueOdometer Int?
+  type    ReminderType
+  dueDate DateTime
+  status  ReminderStatus @default(PENDING)
 
   title String
   notes String?
@@ -1170,8 +1172,8 @@ model ServiceReminder {
   @@index([workshopId])
   @@index([customerId])
   @@index([vehicleId])
-  @@index([status])
   @@index([dueDate])
+  @@index([status])
 }
 
 // ============================================================

@@ -15,6 +15,7 @@ import purchaseRoutes from "../modules/purchase/purchase.routes.js";
 import jobCardItemRoutes from "../modules/job-card-item/job-card-item.routes.js";
 import invoiceRoutes from "../modules/invoice/invoice.routes.js";
 import paymentRoutes from "../modules/payment/payment.routes.js";
+import reminderRoutes from "../modules/reminder/reminder.routes.js";
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use("/purchases", purchaseRoutes);
 router.use("/", jobCardItemRoutes); // balence url is attached in job-card-item.routes.ts
 router.use("/invoices", invoiceRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/reminders", reminderRoutes);
 
 export { router };
