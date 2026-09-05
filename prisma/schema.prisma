@@ -161,6 +161,8 @@ enum InspectionItemStatus {
   ATTENTION
   FAIL
   NOT_CHECKED
+  PENDING
+  NOT_APPLICABLE
 }
 
 enum InspectionType {
@@ -206,6 +208,21 @@ enum JobCardItemType {
 enum InvoiceItemType {
   LABOUR
   PART
+  OTHER
+}
+
+enum InspectionCategory {
+  EXTERIOR
+  INTERIOR
+  ENGINE
+  FLUIDS
+  BRAKES
+  TYRES
+  SUSPENSION
+  ELECTRICAL
+  AC
+  SAFETY
+  ROAD_TEST
   OTHER
 }
 
@@ -557,6 +574,7 @@ model Inspection {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
   workshopId String @db.ObjectId
+  branchId   String @db.ObjectId
   jobCardId  String @db.ObjectId
 
   type InspectionType @default(GENERAL)
@@ -575,6 +593,10 @@ model Inspection {
   technician User? @relation(fields: [technicianId], references: [id])
 
   items InspectionItem[]
+
+  notes       String?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
 
   @@unique([jobCardId])
   @@index([workshopId])

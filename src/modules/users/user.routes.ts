@@ -6,6 +6,7 @@ import {
     getUserById,
     updateUser,
     deactivateUser,
+    getTechnicians,
 } from "./user.controller.js";
 
 import { authenticate } from "../../middlewares/auth.middleware.js";
@@ -33,6 +34,15 @@ router.post(
     "/",
     requireRole(UserRole.ADMIN),
     asyncHandler(createUser)
+);
+
+router.get(
+    "/technicians",
+    requireRole(
+        UserRole.ADMIN,
+        UserRole.SERVICE_ADVISOR
+    ),
+    asyncHandler(getTechnicians)
 );
 
 router.get(

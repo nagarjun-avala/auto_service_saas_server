@@ -123,3 +123,24 @@ export async function updateInspection(
         },
     });
 }
+
+export async function completeInspection(
+    req: Request,
+    res: Response
+) {
+    const context =
+        getAuthContext(req);
+
+    const inspection =
+        await inspectionService.completeInspection(
+            context,
+            req.params.jobCardId as string
+        );
+
+    return res.status(200).json({
+        success: true,
+        data: {
+            inspection,
+        },
+    });
+}

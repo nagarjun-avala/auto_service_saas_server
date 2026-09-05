@@ -450,4 +450,27 @@ export const userService = {
 
         return updatedUser;
     },
+    async getTechnicians(context: AuthContext) {
+        return prisma.user.findMany({
+            where: {
+                workshopId: context.workshopId,
+                role: "TECHNICIAN",
+                status: "ACTIVE",
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true,
+                status: true,
+                workshopId: true,
+                branchId: true,
+            },
+            orderBy: {
+                firstName: "asc",
+            },
+        });
+    },
 };

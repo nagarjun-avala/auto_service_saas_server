@@ -39,6 +39,7 @@ export const inspectionService = {
                     id: true,
                     status: true,
                     technicianId: true,
+                    branchId: true,
                 },
             });
 
@@ -103,6 +104,9 @@ export const inspectionService = {
                 data: {
                     workshopId:
                         context.workshopId,
+
+                    branchId:
+                        jobCard.branchId,
 
                     jobCardId,
 
@@ -400,5 +404,131 @@ export const inspectionService = {
         );
 
         return updated;
+    },
+
+    async completeInspection(
+        context: AuthContext,
+        jobCardId: string
+    ) {
+        const inspection =
+            await prisma.inspection.findFirst({
+                where: {
+                    jobCardId,
+                    workshopId:
+                        context.workshopId,
+                },
+
+                include: {
+                    items: true,
+                },
+            });
+
+        if (!inspection) {
+            throw new AppError(
+                "Inspection not found",
+                404,
+                "INSPECTION_NOT_FOUND"
+            );
+        }
+
+        if (inspection.isCompleted) {
+            throw new AppError(
+                "Inspection is already completed",
+                409,
+                "INSPECTION_ALREADY_COMPLETED"
+            );
+        }
+
+        const uncheckedItems =
+            inspection.items.filter(
+                (item) =>
+                    item.status === "NOT_CHECKED"
+            );
+
+        if (uncheckedItems.length > 0) {
+            throw new AppError(
+                "All inspection items must be checked before completing the inspection",
+                400,
+                "INSPECTION_ITEMS_NOT_CHECKED"
+            );
+        }
+
+        const jobCard =
+            await prisma.jobCard.findFirst({
+                where: {
+                    id: jobCardId,
+                    workshopId:
+                        context.workshopId,
+                    isActive: true,
+                },
+
+                select: {
+                    id: true,
+                    status: true,
+                },
+            });
+
+        if (!jobCard) {
+            throw new AppError(
+                "Job card not found",
+                404,
+                "JOB_CARD_NOT_FOUND"
+            );
+        }
+
+        if (
+            jobCard.status === "COMPLETED" ||
+            jobCard.status === "CANCELLED"
+        ) {
+            throw new AppError(
+                "Inspection cannot be completed for this job card",
+                400,
+                "INSPECTION_LOCKED"
+            );
+        }
+
+        const completed =
+            await prisma.inspection.update({
+                where: {
+                    id: inspection.id,
+                },
+
+                data: {
+                    isCompleted: true,
+                    completedAt: new Date(),
+                },
+
+                include: {
+                    items: true,
+                    technician: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                        },
+                    },
+                },
+            });
+
+        logger.info(
+            {
+                requestId:
+                    context.requestId,
+
+                actorUserId:
+                    context.userId,
+
+                workshopId:
+                    context.workshopId,
+
+                jobCardId,
+
+                inspectionId:
+                    inspection.id,
+            },
+            "Inspection completed"
+        );
+
+        return completed;
     }
 };

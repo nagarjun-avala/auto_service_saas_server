@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import {
+    completeInspection,
     createInspection,
     getInspection,
     updateInspection,
@@ -68,6 +69,18 @@ router.patch(
     ),
 
     asyncHandler(updateInspection)
+);
+
+router.patch(
+    "/job-cards/:jobCardId/inspection/complete",
+
+    requireRole(
+        UserRole.ADMIN,
+        UserRole.SERVICE_ADVISOR,
+        UserRole.TECHNICIAN
+    ),
+
+    asyncHandler(completeInspection)
 );
 
 export default router;

@@ -178,3 +178,20 @@ export async function deactivateUser(
         },
     });
 }
+
+export async function getTechnicians(
+    req: Request,
+    res: Response
+) {
+    const context = getAuthContext(req);
+
+    const technicians =
+        await userService.getTechnicians(context);
+
+    return res.status(200).json({
+        success: true,
+        data: {
+            technicians,
+        },
+    });
+}
