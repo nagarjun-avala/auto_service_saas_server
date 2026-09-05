@@ -3,14 +3,14 @@ import { Router } from "express";
 import {
     getCurrentWorkshop,
     updateCurrentWorkshop,
-} from "./workshop.controller.js";
+} from "#modules/workshops/workshop.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { requireRole } from "../../middlewares/role.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
-import { asyncHandler } from "../../utils/async-handler.js";
+import { asyncHandler } from "#utils/async-handler";
 
-import { UserRole } from "../../generated/prisma/enums.js";
+import { UserRole } from "#generated/prisma/enums";
 
 const router = Router();
 

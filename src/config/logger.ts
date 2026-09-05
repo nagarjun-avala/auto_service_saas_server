@@ -1,6 +1,6 @@
 import pino from "pino";
 
-import { env } from "./env.js";
+import { env } from "#config/env";
 
 const isDevelopment =
     env.NODE_ENV !== "production";

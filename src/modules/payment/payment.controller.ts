@@ -8,13 +8,13 @@ import {
     createPayment,
     getPayment,
     listPayments,
-} from "./payment.service.js";
+} from "#modules/payment/payment.service";
 
 import {
     createPaymentSchema,
     listPaymentsSchema,
-} from "./payment.validation.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/payment/payment.validation";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     StockTransactionType,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/enums";
 
 export const stockInSchema = z.object({
     partId: z

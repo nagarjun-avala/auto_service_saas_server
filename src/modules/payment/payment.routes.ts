@@ -6,9 +6,9 @@ import {
     createPaymentController,
     getPaymentController,
     listPaymentsController,
-} from "./payment.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/payment/payment.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

@@ -1,17 +1,17 @@
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 import {
     hashPassword,
-} from "../auth/auth.utils.js";
+} from "#modules/auth/auth.utils";
 
-import type { AuthContext } from "../../types/auth-context.js";
+import type { AuthContext } from "#types/auth-context";
 
 import type {
     CreateUserInput,
     UpdateUserInput,
-} from "./user.validation.js";
+} from "#modules/users/user.validation";
 
 export const userService = {
     // ==========================================================

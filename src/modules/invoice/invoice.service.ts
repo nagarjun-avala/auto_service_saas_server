@@ -1,13 +1,13 @@
-import { JobCardStatus, InvoiceStatus, JobCardItemType, InvoiceItemType } from "../../generated/prisma/client.js";
+import { JobCardStatus, InvoiceStatus, JobCardItemType, InvoiceItemType } from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
+import prisma from "#config/db";
 
 import type {
     CreateInvoiceInput,
     ListInvoicesOptions,
-} from "./invoice.types.js";
-import { AuthContext } from "@/types/auth-context.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/invoice/invoice.types";
+import { AuthContext } from "#types/auth-context";
+import { AppError } from "#utils/app-error";
 
 
 
@@ -84,7 +84,7 @@ async function getNextInvoiceNumber(
     workshopId: string
 ) {
     const { getNextSequence } =
-        await import("../../utils/sequence.service.js");
+        await import("../../utils/sequence.service");
 
     const sequence =
         await getNextSequence(

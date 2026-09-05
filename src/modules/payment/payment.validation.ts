@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     PaymentMethod,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const createPaymentSchema = z.object({
     invoiceId: z.string().min(1),

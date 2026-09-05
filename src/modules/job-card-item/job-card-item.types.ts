@@ -1,4 +1,4 @@
-import type { JobCardItemType } from "../../generated/prisma/client.js";
+import type { JobCardItemType } from "#generated/prisma/client";
 
 export interface CreateJobCardItemInput {
     type: JobCardItemType;

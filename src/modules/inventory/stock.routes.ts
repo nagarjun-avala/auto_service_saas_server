@@ -1,18 +1,16 @@
 import { Router } from "express";
 
-
-
 import {
     UserRole,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/enums";
 
 import {
     stockInController,
     adjustStockController,
     listStockTransactionsController,
-} from "./stock.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/inventory/stock.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

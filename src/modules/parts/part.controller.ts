@@ -3,7 +3,7 @@ import type {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createPart,
@@ -11,13 +11,13 @@ import {
     updatePart,
     archivePart,
     listParts,
-} from "./part.service.js";
+} from "#modules/parts/part.service";
 
 import {
     createPartSchema,
     updatePartSchema,
     listPartsSchema,
-} from "./part.validation.js";
+} from "#modules/parts/part.validation";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

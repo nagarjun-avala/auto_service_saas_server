@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     InvoiceStatus,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const createInvoiceSchema = z.object({
     jobCardId: z.string().min(1),

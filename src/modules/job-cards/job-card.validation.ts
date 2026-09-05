@@ -3,12 +3,12 @@ import { z } from "zod";
 import {
     ServiceType,
     JobCardStatus,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/enums";
 
 import {
     objectIdSchema,
     optionalObjectIdSchema,
-} from "../../utils/validation.js";
+} from "#utils/validation";
 
 export const createJobCardSchema =
     z.object({

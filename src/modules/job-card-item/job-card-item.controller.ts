@@ -1,18 +1,16 @@
 import type { Request, Response } from "express";
 
-
-
 import {
     addJobCardItem,
     listJobCardItems,
     deleteJobCardItem,
     consumePart,
-} from "./job-card-item.service.js";
+} from "#modules/job-card-item/job-card-item.service";
 
 import {
     createJobCardItemSchema,
-} from "./job-card-item.validation.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/job-card-item/job-card-item.validation";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

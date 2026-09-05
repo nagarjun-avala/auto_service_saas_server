@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { requireRole } from "../../middlewares/role.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 import {
     createEstimateController,
@@ -9,11 +9,11 @@ import {
     listEstimatesController,
     updateEstimateController,
     updateEstimateStatusController,
-} from "./estimate.controller.js";
+} from "#modules/estimates/estimate.controller";
 
 import {
     UserRole,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 const router = Router();
 

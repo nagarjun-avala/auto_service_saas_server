@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
     ReminderStatus,
     ReminderType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const createReminderSchema =
     z.object({

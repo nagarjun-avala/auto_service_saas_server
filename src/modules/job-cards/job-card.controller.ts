@@ -3,7 +3,7 @@ import {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createJobCardSchema,
@@ -11,11 +11,11 @@ import {
     updateJobCardStatusSchema,
     assignTechnicianSchema,
     getJobCardsQuerySchema,
-} from "./job-card.validation.js";
+} from "#modules/job-cards/job-card.validation";
 
 import {
     jobCardService,
-} from "./job-card.service.js";
+} from "#modules/job-cards/job-card.service";
 
 function getAuthContext(
     req: Request

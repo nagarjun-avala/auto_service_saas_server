@@ -1,15 +1,13 @@
 import { Router } from "express";
 
-
-
 import {
     addJobCardItemController,
     listJobCardItemsController,
     deleteJobCardItemController,
     consumePartController,
-} from "./job-card-item.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/job-card-item/job-card-item.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

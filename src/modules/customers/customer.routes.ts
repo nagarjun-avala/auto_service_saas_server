@@ -6,11 +6,11 @@ import {
     getCustomerById,
     updateCustomer,
     archiveCustomer,
-} from "./customer.controller.js";
+} from "#modules/customers/customer.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { requireRole } from "../../middlewares/role.middleware.js";
-import { asyncHandler } from "../../utils/async-handler.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
+import { asyncHandler } from "#utils/async-handler";
 
 import { UserRole } from "@prisma/client";
 

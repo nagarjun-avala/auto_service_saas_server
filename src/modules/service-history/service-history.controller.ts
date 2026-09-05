@@ -3,17 +3,16 @@ import type {
     Response,
 } from "express";
 
-
 import {
     listServiceHistory,
     getVehicleServiceHistory,
     getCustomerServiceHistory,
-} from "./service-history.service.js";
+} from "#modules/service-history/service-history.service";
 
 import {
     listServiceHistorySchema,
-} from "./service-history.validation.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/service-history/service-history.validation";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

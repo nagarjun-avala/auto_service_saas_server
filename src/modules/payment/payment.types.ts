@@ -1,4 +1,4 @@
-import type { PaymentMethod } from "../../generated/prisma/client.js";
+import type { PaymentMethod } from "#generated/prisma/client";
 
 export interface CreatePaymentInput {
     invoiceId: string;

@@ -3,17 +3,17 @@ import {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createCustomerSchema,
     getCustomersQuerySchema,
     updateCustomerSchema,
-} from "./customer.validation.js";
+} from "#modules/customers/customer.validation";
 
 import {
     customerService,
-} from "./customer.service.js";
+} from "#modules/customers/customer.service";
 
 function getAuthContext(
     req: Request

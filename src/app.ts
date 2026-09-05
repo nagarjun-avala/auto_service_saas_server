@@ -2,10 +2,10 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-import { router } from "./routes/index.js";
-import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
-import { errorMiddleware } from "./middlewares/error.middleware.js";
-import { requestLogger } from "./middlewares/request-logger.middleware.js";
+import { router } from "#routes/index";
+import { notFoundMiddleware } from "#middlewares/not-found.middleware";
+import { errorMiddleware } from "#middlewares/error.middleware";
+import { requestLogger } from "#middlewares/request-logger.middleware";
 
 const app = express();
 

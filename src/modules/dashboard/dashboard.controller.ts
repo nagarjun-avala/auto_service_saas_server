@@ -5,8 +5,8 @@ import type {
 
 import {
     getDashboardSummary,
-} from "./dashboard.service.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/dashboard/dashboard.service";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

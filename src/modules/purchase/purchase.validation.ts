@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     PurchaseStatus,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 const purchaseItemSchema =
     z

@@ -1,22 +1,22 @@
 import { Router } from "express";
 
-import authRoutes from "../modules/auth/auth.routes.js";
-import workshopRoutes from "../modules/workshops/workshop.routes.js";
-import userRoutes from "../modules/users/user.routes.js";
-import customerRoutes from "../modules/customers/customer.routes.js";
-import vehicleRoutes from "../modules/vehicles/vehicle.routes.js";
-import jobCardRoutes from "../modules/job-cards/job-card.routes.js";
-import inspectionRoutes from "../modules/inspections/inspection.routes.js";
-import estimateRoutes from "../modules/estimates/estimate.routes.js";
-import partRoutes from "../modules/parts/part.routes.js";
-import stockRoutes from "../modules/inventory/stock.routes.js";
-import supplierRoutes from "../modules/suppliers/supplier.routes.js";
-import purchaseRoutes from "../modules/purchase/purchase.routes.js";
-import jobCardItemRoutes from "../modules/job-card-item/job-card-item.routes.js";
-import invoiceRoutes from "../modules/invoice/invoice.routes.js";
-import paymentRoutes from "../modules/payment/payment.routes.js";
-import reminderRoutes from "../modules/reminder/reminder.routes.js";
-import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
+import authRoutes from "#modules/auth/auth.routes";
+import workshopRoutes from "#modules/workshops/workshop.routes";
+import userRoutes from "#modules/users/user.routes";
+import customerRoutes from "#modules/customers/customer.routes";
+import vehicleRoutes from "#modules/vehicles/vehicle.routes";
+import jobCardRoutes from "#modules/job-cards/job-card.routes";
+import inspectionRoutes from "#modules/inspections/inspection.routes";
+import estimateRoutes from "#modules/estimates/estimate.routes";
+import partRoutes from "#modules/parts/part.routes";
+import stockRoutes from "#modules/inventory/stock.routes";
+import supplierRoutes from "#modules/suppliers/supplier.routes";
+import purchaseRoutes from "#modules/purchase/purchase.routes";
+import jobCardItemRoutes from "#modules/job-card-item/job-card-item.routes";
+import invoiceRoutes from "#modules/invoice/invoice.routes";
+import paymentRoutes from "#modules/payment/payment.routes";
+import reminderRoutes from "#modules/reminder/reminder.routes";
+import dashboardRoutes from "#modules/dashboard/dashboard.routes";
 
 const router = Router();
 

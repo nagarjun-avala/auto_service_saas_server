@@ -1,6 +1,6 @@
 import type {
     PartType,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/enums";
 
 /**
  * Create Part

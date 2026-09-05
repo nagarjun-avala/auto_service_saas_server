@@ -1,14 +1,14 @@
-import { AuthContext } from "@/types/auth-context.js";
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import type { AuthContext } from "#types/auth-context";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 
 import type {
     CreateSupplierInput,
     UpdateSupplierInput,
     ListSuppliersOptions,
-} from "./supplier.types.js";
+} from "#modules/suppliers/supplier.types";
 
 /**
  * Create Supplier

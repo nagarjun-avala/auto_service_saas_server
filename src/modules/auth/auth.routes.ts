@@ -5,12 +5,12 @@ import {
     me,
     refresh,
     logout,
-} from "./auth.controller.js";
+} from "#modules/auth/auth.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { authRateLimit } from "../../middlewares/rate-limit.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { authRateLimit } from "#middlewares/rate-limit.middleware";
 
-import { asyncHandler } from "../../utils/async-handler.js";
+import { asyncHandler } from "#utils/async-handler";
 
 const router = Router();
 

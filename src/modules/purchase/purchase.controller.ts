@@ -1,17 +1,17 @@
 import type { Request, Response } from "express";
 
-import { AppError } from "@/utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createPurchase,
     getPurchase,
     listPurchases,
-} from "./purchase.service.js";
+} from "#modules/purchase/purchase.service";
 
 import {
     createPurchaseSchema,
     listPurchasesSchema,
-} from "./purchase.validation.js";
+} from "#modules/purchase/purchase.validation";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

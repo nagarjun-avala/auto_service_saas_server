@@ -3,16 +3,16 @@ import {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createInspectionSchema,
     updateInspectionSchema,
-} from "./inspection.validation.js";
+} from "#modules/inspections/inspection.validation";
 
 import {
     inspectionService,
-} from "./inspection.service.js";
+} from "#modules/inspections/inspection.service";
 
 function getAuthContext(
     req: Request

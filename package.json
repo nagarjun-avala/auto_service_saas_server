@@ -1,6 +1,17 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "imports": {
+    "#config/*": "./dist/src/config/*.js",
+    "#generated/*": "./dist/src/generated/*.js",
+    "#controllers/*": "./dist/src/controllers/*.js",
+    "#middlewares/*": "./dist/src/middlewares/*.js",
+    "#modules/*": "./dist/src/modules/*.js",
+    "#services/*": "./dist/src/services/*.js",
+    "#routes/*": "./dist/src/routes/*.js",
+    "#utils/*": "./dist/src/utils/*.js",
+    "#types/*": "./dist/src/types/*.js"
+  },
   "description": "",
   "main": "server.js",
   "scripts": {

@@ -5,8 +5,32 @@
     // "rootDir": "./src",
     "outDir": "./dist",
     "paths": {
-      "@/*": [
-        "./src/*"
+      "#config/*": [
+        "./src/config/*"
+      ],
+      "#generated/*": [
+        "./src/generated/*"
+      ],
+      "#controllers/*": [
+        "./src/controllers/*"
+      ],
+      "#middlewares/*": [
+        "./src/middlewares/*"
+      ],
+      "#modules/*": [
+        "./src/modules/*"
+      ],
+      "#routes/*": [
+        "./src/routes/*"
+      ],
+      "#services/*": [
+        "./src/services/*"
+      ],
+      "#types/*": [
+        "./src/types/*"
+      ],
+      "#utils/*": [
+        "./src/utils/*"
       ]
     },
     // For nodejs:

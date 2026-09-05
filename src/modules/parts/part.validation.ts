@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     PartType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const createPartSchema = z.object({
     partNumber: z

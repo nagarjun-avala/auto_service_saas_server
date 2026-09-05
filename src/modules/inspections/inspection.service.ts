@@ -1,18 +1,18 @@
 import {
     JobCardStatus,
     UserRole,
-} from "@prisma/client";
+} from "#generated/prisma/enums";
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
-import type { AuthContext } from "../../types/auth-context.js";
+import type { AuthContext } from "#types/auth-context";
 
 import type {
     CreateInspectionInput,
     UpdateInspectionInput,
-} from "./inspection.validation.js";
+} from "#modules/inspections/inspection.validation";
 
 export const inspectionService = {
     async createInspection(

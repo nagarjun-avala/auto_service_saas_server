@@ -3,7 +3,6 @@ import type {
     Response,
 } from "express";
 
-
 import {
     createReminder,
     getReminder,
@@ -11,14 +10,14 @@ import {
     updateReminder,
     completeReminder,
     cancelReminder,
-} from "./reminder.service.js";
+} from "#modules/reminder/reminder.service";
 
 import {
     createReminderSchema,
     updateReminderSchema,
     listRemindersSchema,
-} from "./reminder.validation.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/reminder/reminder.validation";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

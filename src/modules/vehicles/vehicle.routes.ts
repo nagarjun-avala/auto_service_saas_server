@@ -6,13 +6,13 @@ import {
     getVehicleById,
     updateVehicle,
     archiveVehicle,
-} from "./vehicle.controller.js";
+} from "#modules/vehicles/vehicle.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
 
-import { requireRole } from "../../middlewares/role.middleware.js";
+import { requireRole } from "#middlewares/role.middleware";
 
-import { asyncHandler } from "../../utils/async-handler.js";
+import { asyncHandler } from "#utils/async-handler";
 
 import { UserRole } from "@prisma/client";
 

@@ -1,6 +1,6 @@
 import type {
     StockTransactionType,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/enums";
 
 export interface StockInInput {
     partId: string;

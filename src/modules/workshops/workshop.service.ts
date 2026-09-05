@@ -1,9 +1,9 @@
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
-import type { AuthContext } from "../../types/auth-context.js";
-import type { UpdateWorkshopInput } from "./workshop.validation.js";
+import type { AuthContext } from "#types/auth-context";
+import type { UpdateWorkshopInput } from "#modules/workshops/workshop.validation";
 
 export const workshopService = {
     // ==========================================================

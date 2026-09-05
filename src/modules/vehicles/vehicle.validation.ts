@@ -3,12 +3,12 @@ import { z } from "zod";
 import {
     FuelType,
     TransmissionType,
-} from "@prisma/client";
+} from "#generated/prisma/client";
 
 import {
     objectIdSchema,
     optionalObjectIdSchema,
-} from "../../utils/validation.js";
+} from "#utils/validation";
 
 // ============================================================
 // CREATE VEHICLE

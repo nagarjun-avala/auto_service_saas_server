@@ -2,7 +2,7 @@ import { pinoHttp } from "pino-http";
 import crypto from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import { logger } from "../config/logger.js";
+import { logger } from "#config/logger";
 
 export const requestLogger = pinoHttp({
     logger,

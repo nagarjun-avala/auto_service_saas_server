@@ -1,7 +1,5 @@
 import { Router } from "express";
 
-
-
 import {
     createReminderController,
     getReminderController,
@@ -9,9 +7,9 @@ import {
     updateReminderController,
     completeReminderController,
     cancelReminderController,
-} from "./reminder.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/reminder/reminder.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

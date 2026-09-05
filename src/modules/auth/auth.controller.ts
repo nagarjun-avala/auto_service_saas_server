@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     loginSchema,
     refreshTokenSchema,
-} from "./auth.validation.js";
+} from "#modules/auth/auth.validation";
 
-import { authService } from "./auth.service.js";
+import { authService } from "#modules/auth/auth.service";
 
 
 // ============================================================

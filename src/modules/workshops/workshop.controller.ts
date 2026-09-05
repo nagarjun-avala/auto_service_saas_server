@@ -3,10 +3,10 @@ import {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
-import { updateWorkshopSchema } from "./workshop.validation.js";
-import { workshopService } from "./workshop.service.js";
+import { updateWorkshopSchema } from "#modules/workshops/workshop.validation";
+import { workshopService } from "#modules/workshops/workshop.service";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

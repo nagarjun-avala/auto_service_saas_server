@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
     EstimateItemType,
     EstimateStatus,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const estimateItemSchema = z
     .object({

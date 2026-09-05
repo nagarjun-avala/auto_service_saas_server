@@ -3,28 +3,28 @@ import type {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createEstimate,
     getEstimate,
     updateEstimate,
     updateEstimateStatus,
-} from "./estimate.service.js";
+} from "#modules/estimates/estimate.service";
 
 import {
     createEstimateSchema,
     updateEstimateSchema,
     updateEstimateStatusSchema,
-} from "./estimate.validation.js";
+} from "#modules/estimates/estimate.validation";
 
 import {
     listEstimates,
-} from "./estimate.service.js";
+} from "#modules/estimates/estimate.service";
 
 import {
     listEstimatesSchema,
-} from "./estimate.validation.js";
+} from "#modules/estimates/estimate.validation";
 
 /**
  * Build AuthContext from authenticated request.

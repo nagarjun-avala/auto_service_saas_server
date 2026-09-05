@@ -2,10 +2,10 @@ import {
     JobCardStatus,
     EstimateStatus,
     InvoiceStatus,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
-import { AuthContext } from "@/types/auth-context.js";
+import prisma from "#config/db";
+import { AuthContext } from "#types/auth-context";
 
 
 export async function getDashboardSummary(

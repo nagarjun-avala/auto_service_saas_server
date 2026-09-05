@@ -3,19 +3,19 @@ import type {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     stockIn,
     adjustStock,
     listStockTransactions,
-} from "./stock.service.js";
+} from "#modules/inventory/stock.service";
 
 import {
     stockInSchema,
     stockAdjustmentSchema,
     listStockTransactionsSchema,
-} from "./stock.validation.js";
+} from "#modules/inventory/stock.validation";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

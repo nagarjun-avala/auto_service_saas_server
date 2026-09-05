@@ -1,6 +1,6 @@
 import {
     JobCardStatus,
-} from "../../generated/prisma/enums";
+} from "#generated/prisma/enums";
 
 export const JOB_CARD_STATUS_TRANSITIONS: Record<
     JobCardStatus,

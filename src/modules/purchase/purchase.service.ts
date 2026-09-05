@@ -1,18 +1,17 @@
 import {
     PurchaseStatus,
     StockTransactionType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
-
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 import type {
     CreatePurchaseInput,
     ListPurchasesOptions,
-} from "./purchase.types.js";
-import { AuthContext } from "@/types/auth-context.js";
+} from "#modules/purchase/purchase.types";
+import type { AuthContext } from "#types/auth-context";
 
 function calculatePurchaseItem(
     quantity: number,
@@ -86,7 +85,7 @@ async function getNextPurchaseNumber(
      */
     const { getNextSequence } =
         await import(
-            "../../utils/sequence.service.js"
+            "../../utils/sequence.service"
         );
 
     const sequence =

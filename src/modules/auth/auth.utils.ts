@@ -4,8 +4,8 @@ import jwt, {
     type SignOptions,
 } from "jsonwebtoken";
 
-import { UserRole } from "../../generated/prisma/enums.js";
-import { env } from "../../config/env.js";
+import { UserRole } from "#generated/prisma/enums";
+import { env } from "#config/env";
 
 export async function hashPassword(password: string) {
     return bcrypt.hash(password, 10);

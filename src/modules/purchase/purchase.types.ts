@@ -1,4 +1,4 @@
-import type { PurchaseStatus } from "../../generated/prisma/enums.js";
+import { PurchaseStatus } from "#generated/prisma/enums";
 
 export interface CreatePurchaseItemInput {
     partId: string;

@@ -1,7 +1,7 @@
 import type {
     EstimateItemType,
     EstimateStatus,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/enums";
 
 /**
  * Estimate item input

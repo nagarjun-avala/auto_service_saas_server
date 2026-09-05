@@ -1,12 +1,9 @@
 import { Router } from "express";
-
-
-
 import {
     getDashboardSummaryController,
-} from "./dashboard.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/dashboard/dashboard.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

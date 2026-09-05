@@ -1,14 +1,12 @@
 import { Router } from "express";
 
-
-
 import {
     createPurchaseController,
     getPurchaseController,
     listPurchasesController,
-} from "./purchase.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/purchase/purchase.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

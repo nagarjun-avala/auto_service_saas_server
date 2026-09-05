@@ -3,7 +3,7 @@ import type {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createSupplier,
@@ -11,13 +11,13 @@ import {
     updateSupplier,
     archiveSupplier,
     listSuppliers,
-} from "./supplier.service.js";
+} from "#modules/suppliers/supplier.service";
 
 import {
     createSupplierSchema,
     updateSupplierSchema,
     listSuppliersSchema,
-} from "./supplier.validation.js";
+} from "#modules/suppliers/supplier.validation";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

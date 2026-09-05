@@ -1,10 +1,8 @@
 import { Router } from "express";
 
-
-
 import {
     UserRole,
-} from "@/generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 import {
     createPartController,
@@ -12,9 +10,9 @@ import {
     getPartController,
     updatePartController,
     archivePartController,
-} from "./part.controller.js";
-import { authenticate } from "@/middlewares/auth.middleware.js";
-import { requireRole } from "@/middlewares/role.middleware.js";
+} from "#modules/parts/part.controller";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
 const router = Router();
 

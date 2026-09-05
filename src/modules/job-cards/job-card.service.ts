@@ -1,17 +1,17 @@
 import {
     JobCardStatus,
     UserRole,
-} from "@prisma/client";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
-import type { AuthContext } from "../../types/auth-context.js";
+import type { AuthContext } from "#types/auth-context";
 
 import {
     JOB_CARD_STATUS_TRANSITIONS,
-} from "./job-card.types.js";
+} from "#modules/job-cards/job-card.types";
 
 import {
     CreateJobCardInput,
@@ -19,10 +19,10 @@ import {
     UpdateJobCardStatusInput,
     AssignTechnicianInput,
     GetJobCardsQuery,
-} from "./job-card.validation.js";
+} from "#modules/job-cards/job-card.validation";
 
-import { getNextSequence } from "../../utils/sequence.service.js";
-import { verifyAccessToken } from "../auth/auth.utils.js";
+import { getNextSequence } from "#utils/sequence.service";
+
 
 export const jobCardService = {
     // ==========================================================
@@ -617,6 +617,12 @@ export const jobCardService = {
                             },
                         },
                     },
+                    estimate: {
+                        include: {
+                            items: true
+                        }
+                    },
+                    invoice: true,
                 },
             });
 

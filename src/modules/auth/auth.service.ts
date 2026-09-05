@@ -1,19 +1,19 @@
-import { RequestContext } from "@/types/request-context.js";
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import { RequestContext } from "#types/request-context";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 import {
     generateAccessToken,
     generateRefreshToken,
     hashToken,
     verifyPassword,
-} from "./auth.utils.js";
+} from "./auth.utils";
 
 import type {
     LoginInput,
     RefreshTokenInput,
-} from "./auth.validation.js";
+} from "./auth.validation";
 
 export const authService = {
     // ==========================================================

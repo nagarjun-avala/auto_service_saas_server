@@ -3,9 +3,9 @@ import { z } from "zod";
 import {
     UserRole,
     UserStatus,
-} from "../../generated/prisma/enums.js";
+} from "#generated/prisma/client";
 
-import { optionalObjectIdSchema } from "../../utils/validation.js";
+import { optionalObjectIdSchema } from "#utils/validation";
 
 export const createUserSchema = z.object({
     firstName: z

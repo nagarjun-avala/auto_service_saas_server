@@ -3,17 +3,17 @@ import {
     Response,
 } from "express";
 
-import { AppError } from "../../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 import {
     createVehicleSchema,
     updateVehicleSchema,
     getVehiclesQuerySchema,
-} from "./vehicle.validation.js";
+} from "#modules/vehicles/vehicle.validation";
 
 import {
     vehicleService,
-} from "./vehicle.service.js";
+} from "#modules/vehicles/vehicle.service";
 
 function getAuthContext(
     req: Request

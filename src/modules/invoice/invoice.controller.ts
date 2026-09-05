@@ -1,19 +1,18 @@
 import type { Request, Response } from "express";
 
-
 import {
     createInvoice,
     getInvoice,
     listInvoices,
     updateInvoiceStatus,
-} from "./invoice.service.js";
+} from "#modules/invoice/invoice.service";
 
 import {
     createInvoiceSchema,
     listInvoicesSchema,
     updateInvoiceStatusSchema,
-} from "./invoice.validation.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/invoice/invoice.validation";
+import { AppError } from "#utils/app-error";
 
 function getAuthContext(req: Request) {
     if (!req.user) {

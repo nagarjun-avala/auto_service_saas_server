@@ -1,8 +1,8 @@
 import "dotenv/config";
 
-import app from "./app.js";
-import { logger } from "./config/logger.js";
-import db from "./config/db.js";
+import app from "./app";
+import { logger } from "#config/logger";
+import db from "#config/db";
 
 const PORT = Number(process.env.PORT) || 5000;
 

@@ -1,16 +1,16 @@
 import {
     InvoiceStatus,
     PaymentMethod,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
+import prisma from "#config/db";
 
 import type {
     CreatePaymentInput,
     ListPaymentsOptions,
-} from "./payment.types.js";
-import { AuthContext } from "@/types/auth-context.js";
-import { AppError } from "@/utils/app-error.js";
+} from "#modules/payment/payment.types";
+import { AuthContext } from "#types/auth-context";
+import { AppError } from "#utils/app-error";
 
 export async function createPayment(
     context: AuthContext,

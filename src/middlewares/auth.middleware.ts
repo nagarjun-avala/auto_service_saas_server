@@ -6,9 +6,9 @@ import {
 
 import {
     verifyAccessToken,
-} from "../modules/auth/auth.utils.js";
+} from "#modules/auth/auth.utils";
 
-import { AppError } from "../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 export function authenticate(
     req: Request,

@@ -1,20 +1,20 @@
 import {
     EstimateStatus,
     JobCardStatus,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 import type {
     CreateEstimateInput,
     ListEstimatesOptions,
     UpdateEstimateInput,
-} from "./estimate.types.js";
+} from "#modules/estimates/estimate.types";
 
-import { getNextSequence } from "../../utils/sequence.service.js";
-import { AuthContext } from "@/types/auth-context.js";
+import { getNextSequence } from "#utils/sequence.service";
+import { AuthContext } from "#types/auth-context";
 
 /**
  * Calculate a single estimate item's financial values.

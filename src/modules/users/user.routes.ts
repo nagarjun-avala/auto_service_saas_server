@@ -7,14 +7,13 @@ import {
     updateUser,
     deactivateUser,
     getTechnicians,
-} from "./user.controller.js";
+} from "#modules/users/user.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { requireRole } from "../../middlewares/role.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
+import { asyncHandler } from "#utils/async-handler";
 
-import { asyncHandler } from "../../utils/async-handler.js";
-
-import { UserRole } from "@prisma/client";
+import { UserRole } from "#generated/prisma/client";
 
 const router = Router();
 

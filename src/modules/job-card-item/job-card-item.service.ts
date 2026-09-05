@@ -1,12 +1,12 @@
-import prisma from "@/config/db";
+import prisma from "#config/db";
 import {
     JobCardItemType,
     JobCardStatus,
     StockTransactionType,
-} from "@/generated/prisma/enums";
-import { AuthContext } from "@/types/auth-context";
-import { AppError } from "@/utils/app-error";
-import type { CreateJobCardItemInput } from "./job-card-item.types";
+} from "#generated/prisma/enums";
+import { AuthContext } from "#types/auth-context";
+import { AppError } from "#utils/app-error";
+import type { CreateJobCardItemInput } from "#modules/job-card-item/job-card-item.types";
 
 function calculateItemTotal(
     quantity: number,

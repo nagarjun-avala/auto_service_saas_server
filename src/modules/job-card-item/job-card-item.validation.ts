@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
     JobCardItemType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export const createJobCardItemSchema = z.object({
     type: z.nativeEnum(JobCardItemType),

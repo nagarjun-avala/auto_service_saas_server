@@ -5,10 +5,10 @@ import type {
 } from "express";
 
 import { ZodError } from "zod";
-import { Prisma } from "../generated/prisma/client.js";
+import { Prisma } from "#generated/prisma/client";
 
-import { logger } from "../config/logger.js";
-import { AppError } from "../utils/app-error.js";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 export function errorMiddleware(
     err: unknown,

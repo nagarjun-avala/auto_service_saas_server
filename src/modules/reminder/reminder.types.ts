@@ -1,7 +1,7 @@
 import type {
     ReminderStatus,
     ReminderType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
 export interface CreateReminderInput {
     customerId: string;

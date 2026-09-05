@@ -1,15 +1,15 @@
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 
 import type {
     CreatePartInput,
     UpdatePartInput,
     ListPartsOptions,
-} from "./part.types.js";
-import { AuthContext } from "../../types/auth-context.js";
+} from "#modules/parts/part.types";
+import type { AuthContext } from "#types/auth-context";
 
 /**
  * Create Part

@@ -1,18 +1,18 @@
 import {
     StockTransactionType,
-} from "../../generated/prisma/client.js";
+} from "#generated/prisma/client";
 
-import prisma from "../../config/db.js";
-import { logger } from "../../config/logger.js";
-import { AppError } from "../../utils/app-error.js";
+import prisma from "#config/db";
+import { logger } from "#config/logger";
+import { AppError } from "#utils/app-error";
 
 
 import type {
     StockInInput,
     StockAdjustmentInput,
     ListStockTransactionsOptions,
-} from "./stock.types.js";
-import { AuthContext } from "@/types/auth-context.js";
+} from "#modules/inventory/stock.types";
+import { AuthContext } from "#types/auth-context";
 
 /**
  * Stock In

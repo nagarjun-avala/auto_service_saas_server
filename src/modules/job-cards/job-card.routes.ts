@@ -8,14 +8,14 @@ import {
     updateStatus,
     assignTechnician,
     archiveJobCard,
-} from "./job-card.controller.js";
+} from "#modules/job-cards/job-card.controller";
 
-import { authenticate } from "../../middlewares/auth.middleware.js";
-import { requireRole } from "../../middlewares/role.middleware.js";
+import { authenticate } from "#middlewares/auth.middleware";
+import { requireRole } from "#middlewares/role.middleware";
 
-import { asyncHandler } from "../../utils/async-handler.js";
+import { asyncHandler } from "#utils/async-handler";
 
-import { UserRole } from "@prisma/client";
+import { UserRole } from "#generated/prisma/enums";
 
 const router = Router();
 

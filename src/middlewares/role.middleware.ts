@@ -4,9 +4,9 @@ import {
     Response,
 } from "express";
 
-import { UserRole } from "../generated/prisma/enums.js";
+import { UserRole } from "#generated/prisma/enums";
 
-import { AppError } from "../utils/app-error.js";
+import { AppError } from "#utils/app-error";
 
 export function requireRole(
     ...allowedRoles: UserRole[]

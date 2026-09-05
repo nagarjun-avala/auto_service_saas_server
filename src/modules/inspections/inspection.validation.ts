@@ -1,7 +1,7 @@
 import {
     InspectionType,
     InspectionItemStatus,
-} from "../../generated/prisma/enums";
+} from "#generated/prisma/enums";
 
 import { z } from "zod";
 
